@@ -47,7 +47,7 @@ definitions:
         maxLength: 255
         type: string
       id:
-        type: string
+        type: integer
       password_hash:
         maxLength: 255
         type: string
@@ -60,7 +60,6 @@ definitions:
         type: integer
     required:
     - email
-    - id
     - password_hash
     - user_role
     - user_status

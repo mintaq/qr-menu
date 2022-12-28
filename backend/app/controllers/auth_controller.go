@@ -10,7 +10,6 @@ import (
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/platform/database"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 )
 
 // UserSignUp method to create a new user.
@@ -49,16 +48,6 @@ func UserSignUp(c *fiber.Ctx) error {
 		})
 	}
 
-	// Create database connection.
-	db, err := database.OpenDBConnection()
-	if err != nil {
-		// Return status 500 and database connection error.
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
-	}
-
 	// Checking role from sign up data.
 	role, err := utils.VerifyRole(signUp.UserRole)
 	if err != nil {
@@ -73,7 +62,6 @@ func UserSignUp(c *fiber.Ctx) error {
 	user := &models.User{}
 
 	// Set initialized default data for user:
-	user.ID = uuid.New()
 	user.CreatedAt = time.Now()
 	user.Email = signUp.Email
 	user.PasswordHash = utils.GeneratePassword(signUp.Password)
@@ -90,11 +78,11 @@ func UserSignUp(c *fiber.Ctx) error {
 	}
 
 	// Create a new user with validated data.
-	if err := db.CreateUser(user); err != nil {
+	if tx := database.Database.Create(&user); tx.Error != nil {
 		// Return status 500 and create user process error.
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": true,
-			"msg":   err.Error(),
+			"msg":   tx.Error.Error(),
 		})
 	}
 
@@ -122,6 +110,7 @@ func UserSignUp(c *fiber.Ctx) error {
 func UserSignIn(c *fiber.Ctx) error {
 	// Create a new user auth struct.
 	signIn := &models.SignIn{}
+	var foundedUser models.User
 
 	// Checking received data from JSON body.
 	if err := c.BodyParser(signIn); err != nil {
@@ -132,23 +121,13 @@ func UserSignIn(c *fiber.Ctx) error {
 		})
 	}
 
-	// Create database connection.
-	db, err := database.OpenDBConnection()
-	if err != nil {
-		// Return status 500 and database connection error.
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
-	}
-
 	// Get user by email.
-	foundedUser, err := db.GetUserByEmail(signIn.Email)
-	if err != nil {
+	tx := database.Database.First(&foundedUser, "email = ?", signIn.Email)
+	if tx.Error != nil {
 		// Return, if user not found.
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": true,
-			"msg":   "user with the given email is not found",
+			"msg":   tx.Error.Error(),
 		})
 	}
 
@@ -173,7 +152,7 @@ func UserSignIn(c *fiber.Ctx) error {
 	}
 
 	// Generate a new pair of access and refresh tokens.
-	tokens, err := utils.GenerateNewTokens(foundedUser.ID.String(), credentials)
+	tokens, err := utils.GenerateNewTokens(foundedUser.Email, credentials)
 	if err != nil {
 		// Return status 500 and token generation error.
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -181,9 +160,6 @@ func UserSignIn(c *fiber.Ctx) error {
 			"msg":   err.Error(),
 		})
 	}
-
-	// Define user ID.
-	userID := foundedUser.ID.String()
 
 	// Create a new Redis connection.
 	connRedis, err := cache.RedisConnection()
@@ -196,7 +172,7 @@ func UserSignIn(c *fiber.Ctx) error {
 	}
 
 	// Save refresh token to Redis.
-	errSaveToRedis := connRedis.Set(context.Background(), userID, tokens.Refresh, 0).Err()
+	errSaveToRedis := connRedis.Set(context.Background(), foundedUser.Email, tokens.Refresh, 0).Err()
 	if errSaveToRedis != nil {
 		// Return status 500 and Redis connection error.
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

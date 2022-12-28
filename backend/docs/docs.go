@@ -490,7 +490,6 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "email",
-                "id",
                 "password_hash",
                 "user_role",
                 "user_status"
@@ -504,7 +503,7 @@ const docTemplate = `{
                     "maxLength": 255
                 },
                 "id": {
-                    "type": "string"
+                    "type": "integer"
                 },
                 "password_hash": {
                     "type": "string",
