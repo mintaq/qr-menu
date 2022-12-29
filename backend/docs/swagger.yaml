@@ -1,5 +1,13 @@
 basePath: /api
 definitions:
+  gorm.DeletedAt:
+    properties:
+      time:
+        type: string
+      valid:
+        description: Valid is true if Time is not NULL
+        type: boolean
+    type: object
   models.Book:
     properties:
       author:
@@ -43,6 +51,10 @@ definitions:
     properties:
       created_at:
         type: string
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
       email:
         maxLength: 255
         type: string
@@ -52,6 +64,8 @@ definitions:
         maxLength: 255
         type: string
       updated_at:
+        type: string
+      updatedAt:
         type: string
       user_role:
         maxLength: 25

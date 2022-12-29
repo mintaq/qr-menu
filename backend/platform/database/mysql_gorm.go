@@ -2,6 +2,8 @@
 package database
 
 import (
+	"log"
+
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/app/models"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils"
 	"gorm.io/driver/mysql"
@@ -15,23 +17,23 @@ type DbInstance struct {
 
 var Database *gorm.DB
 
-func MysqlGormConnection() error {
+func MysqlGormConnection() {
 	var err error
 
 	mysqlConnURL, err := utils.ConnectionURLBuilder("mysql")
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
-	Database, err = gorm.Open(mysql.Open(mysqlConnURL), &gorm.Config{
+	Database, err = gorm.Open(mysql.Open(mysqlConnURL+"?parseTime=true"), &gorm.Config{
 		SkipDefaultTransaction: true,
 		PrepareStmt:            true,
 	})
 
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 
-	Database.AutoMigrate(&models.Book{})
-
-	return nil
+	if err := Database.AutoMigrate(&models.User{}); err != nil {
+		log.Panic(err)
+	}
 }
