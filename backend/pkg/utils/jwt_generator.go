@@ -103,5 +103,8 @@ func generateNewRefreshToken() (string, error) {
 
 // ParseRefreshToken func for parse second argument from refresh token.
 func ParseRefreshToken(refreshToken string) (int64, error) {
+	if refreshToken == "" {
+		return 0, fmt.Errorf("empty refresh token")
+	}
 	return strconv.ParseInt(strings.Split(refreshToken, ".")[1], 0, 64)
 }
