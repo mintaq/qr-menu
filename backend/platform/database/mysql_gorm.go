@@ -22,7 +22,7 @@ func MysqlGormConnection() {
 
 	mysqlConnURL, err := utils.ConnectionURLBuilder("mysql")
 	if err != nil {
-		log.Panic(err)
+		log.Panic(err.Error())
 	}
 	Database, err = gorm.Open(mysql.Open(mysqlConnURL+"?parseTime=true"), &gorm.Config{
 		SkipDefaultTransaction: true,
@@ -30,10 +30,10 @@ func MysqlGormConnection() {
 	})
 
 	if err != nil {
-		log.Panic(err)
+		log.Panic(err.Error())
 	}
 
 	if err := Database.AutoMigrate(&models.User{}); err != nil {
-		log.Panic(err)
+		log.Panic(err.Error())
 	}
 }

@@ -2,13 +2,11 @@ package models
 
 import (
 	"time"
-
-	"gorm.io/gorm"
 )
 
 // User struct to describe User object.
 type User struct {
-	gorm.Model
+	ID           int       `json:"id" gorm:"primarykey"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
 	Email        string    `json:"email" validate:"required,email,lte=255"`

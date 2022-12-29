@@ -431,18 +431,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "gorm.DeletedAt": {
-            "type": "object",
-            "properties": {
-                "time": {
-                    "type": "string"
-                },
-                "valid": {
-                    "description": "Valid is true if Time is not NULL",
-                    "type": "boolean"
-                }
-            }
-        },
         "models.Book": {
             "type": "object",
             "required": [
@@ -478,7 +466,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "user_id": {
-                    "type": "string"
+                    "type": "integer"
                 }
             }
         },
@@ -507,14 +495,8 @@ const docTemplate = `{
                 "user_status"
             ],
             "properties": {
-                "createdAt": {
-                    "type": "string"
-                },
                 "created_at": {
                     "type": "string"
-                },
-                "deletedAt": {
-                    "$ref": "#/definitions/gorm.DeletedAt"
                 },
                 "email": {
                     "type": "string",
@@ -526,9 +508,6 @@ const docTemplate = `{
                 "password_hash": {
                     "type": "string",
                     "maxLength": 255
-                },
-                "updatedAt": {
-                    "type": "string"
                 },
                 "updated_at": {
                     "type": "string"

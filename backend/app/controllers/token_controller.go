@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"strconv"
 	"time"
 
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/app/models"
@@ -74,24 +75,15 @@ func RenewTokens(c *fiber.Ctx) error {
 	if now < expiresRefreshToken {
 		// Define user ID.
 		userID := claims.UserID
-
-		// Create database connection.
-		db, err := database.OpenDBConnection()
-		if err != nil {
-			// Return status 500 and database connection error.
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": true,
-				"msg":   err.Error(),
-			})
-		}
+		var foundedUser models.User
 
 		// Get user by ID.
-		foundedUser, err := db.GetUserByID(userID)
-		if err != nil {
+		tx := database.Database.First(&foundedUser, "id = ?", userID)
+		if tx.Error != nil {
 			// Return, if user not found.
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 				"error": true,
-				"msg":   "user with the given ID is not found",
+				"msg":   tx.Error.Error(),
 			})
 		}
 
@@ -106,7 +98,7 @@ func RenewTokens(c *fiber.Ctx) error {
 		}
 
 		// Generate JWT Access & Refresh tokens.
-		tokens, err := utils.GenerateNewTokens(userID.String(), credentials)
+		tokens, err := utils.GenerateNewTokens(strconv.Itoa(userID), credentials)
 		if err != nil {
 			// Return status 500 and token generation error.
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -126,7 +118,7 @@ func RenewTokens(c *fiber.Ctx) error {
 		}
 
 		// Save refresh token to Redis.
-		errRedis := connRedis.Set(context.Background(), userID.String(), tokens.Refresh, 0).Err()
+		errRedis := connRedis.Set(context.Background(), strconv.Itoa(userID), tokens.Refresh, 0).Err()
 		if errRedis != nil {
 			// Return status 500 and Redis connection error.
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils"
@@ -20,11 +19,11 @@ func TestPrivateRoutes(t *testing.T) {
 	}
 
 	// Create a sample data string.
-	dataString := `{"id": "00000000-0000-0000-0000-000000000000"}`
+	dataString := `{"id": 1}`
 
 	// Create token with `book:delete` credential.
 	tokenOnlyDelete, err := utils.GenerateNewTokens(
-		uuid.NewString(),
+		"1",
 		[]string{"book:delete"},
 	)
 	if err != nil {
@@ -33,7 +32,7 @@ func TestPrivateRoutes(t *testing.T) {
 
 	// Create token without any credentials.
 	tokenNoAccess, err := utils.GenerateNewTokens(
-		uuid.NewString(),
+		"2",
 		[]string{},
 	)
 	if err != nil {
@@ -75,7 +74,7 @@ func TestPrivateRoutes(t *testing.T) {
 			tokenString:   "Bearer " + tokenOnlyDelete.Access,
 			body:          strings.NewReader(dataString),
 			expectedError: false,
-			expectedCode:  404,
+			expectedCode:  400,
 		},
 	}
 

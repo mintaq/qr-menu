@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"strconv"
 	"time"
 
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/app/models"
@@ -152,7 +153,7 @@ func UserSignIn(c *fiber.Ctx) error {
 	}
 
 	// Generate a new pair of access and refresh tokens.
-	tokens, err := utils.GenerateNewTokens(foundedUser.Email, credentials)
+	tokens, err := utils.GenerateNewTokens(strconv.Itoa(foundedUser.ID), credentials)
 	if err != nil {
 		// Return status 500 and token generation error.
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -172,7 +173,7 @@ func UserSignIn(c *fiber.Ctx) error {
 	}
 
 	// Save refresh token to Redis.
-	errSaveToRedis := connRedis.Set(context.Background(), foundedUser.Email, tokens.Refresh, 0).Err()
+	errSaveToRedis := connRedis.Set(context.Background(), strconv.Itoa(foundedUser.ID), tokens.Refresh, 0).Err()
 	if errSaveToRedis != nil {
 		// Return status 500 and Redis connection error.
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -213,7 +214,7 @@ func UserSignOut(c *fiber.Ctx) error {
 	}
 
 	// Define user ID.
-	userID := claims.UserID.String()
+	userID := strconv.Itoa(claims.UserID)
 
 	// Create a new Redis connection.
 	connRedis, err := cache.RedisConnection()
