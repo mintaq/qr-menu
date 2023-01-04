@@ -496,6 +496,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "created_at": {
+                    "description": "Set to current time if it is zero on creating",
                     "type": "string"
                 },
                 "email": {
@@ -510,6 +511,7 @@ const docTemplate = `{
                     "maxLength": 255
                 },
                 "updated_at": {
+                    "description": "Set to current unix seconds on updating or if it is zero on creating",
                     "type": "string"
                 },
                 "user_role": {
