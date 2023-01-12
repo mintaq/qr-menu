@@ -34,3 +34,11 @@ type GoogleClaims struct {
 	Picture       string `json:"picture"`
 	jwt.StandardClaims
 }
+
+type CreatePasswordClaims struct {
+	Password string `json:"password" validate:"required,lte=255"`
+}
+
+type EmailResetPassword struct {
+	Email string `json:"email" validate:"required,email,lte=255"`
+}

@@ -3,6 +3,8 @@ package controllers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"os"
 	"strconv"
 	"time"
 
@@ -14,6 +16,7 @@ import (
 	"gorm.io/gorm/clause"
 
 	"github.com/gofiber/fiber/v2"
+	"gopkg.in/gomail.v2"
 )
 
 // UserSignUp method to create a new user.
@@ -325,6 +328,7 @@ func GoogleSignIn(c *fiber.Ctx) error {
 	})
 }
 
+// GoogleLogin method to generate authenticate url.
 func GoogleLogin(c *fiber.Ctx) error {
 	oauthState := utils.GenerateState()
 	url := utils.GetAuthCodeURL(oauthState)
@@ -336,6 +340,7 @@ func GoogleLogin(c *fiber.Ctx) error {
 	})
 }
 
+// GoogleCallback method to get user data from Google and create or update user.
 func GoogleCallback(c *fiber.Ctx) error {
 	data, err := utils.GetUserDataFromGoogle(c.Query("code"))
 	var userData models.GoogleClaims
@@ -401,5 +406,125 @@ func GoogleCallback(c *fiber.Ctx) error {
 			"access":  tokens.Access,
 			"refresh": tokens.Refresh,
 		},
+	})
+}
+
+// ResetPassword method to send email reset password to user.
+func ResetPassword(c *fiber.Ctx) error {
+	var emailResetPassword models.EmailResetPassword
+	if err := c.BodyParser(&emailResetPassword); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	validate := utils.NewValidator()
+	if err := validate.Struct(&emailResetPassword); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	var user models.User
+	tx := database.Database.First(&user, "email = ?", emailResetPassword.Email)
+	if tx.Error != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": true,
+			"msg":   "user not found",
+		})
+	}
+
+	// Get role credentials from founded user.
+	credentials, err := utils.GetCredentialsByRole(user.UserRole)
+	if err != nil {
+		// Return status 400 and error message.
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	// Generate a new pair of access and refresh tokens.
+	tokens, err := utils.GenerateNewTokens(strconv.Itoa(user.ID), credentials)
+	if err != nil {
+		// Return status 500 and token generation error.
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	from := os.Getenv("MAIL_ADDRESS")
+	password := os.Getenv("MAIL_PASSWORD")
+	msg := gomail.NewMessage()
+	msg.SetHeader("From", from)
+	msg.SetHeader("To", emailResetPassword.Email)
+	msg.SetHeader("Subject", "Reset password")
+	msg.SetBody("text/html", fmt.Sprintf(repository.MailTemplateResetPassword, os.Getenv("RESET_PASSWORD_CALLBACK_URL")+"?token="+tokens.Access))
+
+	n := gomail.NewDialer("smtp.gmail.com", 587, from, password)
+
+	if err := n.DialAndSend(msg); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+	return c.JSON(fiber.Map{
+		"error": false,
+		"msg":   nil,
+	})
+}
+
+// CreateNewPassword method to create new password for user.
+func CreateNewPassword(c *fiber.Ctx) error {
+	claims, err := utils.ExtractTokenMetadata(c)
+	if err != nil {
+		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	var newPassword models.CreatePasswordClaims
+	validate := utils.NewValidator()
+
+	if err := c.BodyParser(&newPassword); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	if err := validate.Struct(&newPassword); err != nil {
+		// Return, if some fields are not valid.
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   utils.ValidatorErrors(err),
+		})
+	}
+
+	var user models.User
+	tx := database.Database.First(&user, "id = ?", claims.UserID)
+	if tx.Error != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": true,
+			"msg":   "user id not found",
+		})
+	}
+
+	tx = database.Database.Model(&models.User{}).Where("id = ?", claims.UserID).Update("password_hash", utils.GeneratePassword(newPassword.Password))
+	if tx.Error != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": true,
+			"msg":   tx.Error.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"error": false,
+		"msg":   claims.UserID,
 	})
 }
