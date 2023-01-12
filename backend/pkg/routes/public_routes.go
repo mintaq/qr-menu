@@ -8,15 +8,17 @@ import (
 // PublicRoutes func for describe group of public routes.
 func PublicRoutes(a *fiber.App) {
 	// Create routes group.
-	route := a.Group("/api/v1")
+	api := a.Group("/api")
+	v1 := api.Group("/v1")
 
 	// Routes for Book:
-	route.Get("/books", controllers.GetBooks)   // get list of all books
-	route.Get("/book/:id", controllers.GetBook) // get one book by ID
+	v1.Get("/books", controllers.GetBooks)   // get list of all books
+	v1.Get("/book/:id", controllers.GetBook) // get one book by ID
 
 	// Routes for User:
-	route.Post("/user/sign/up", controllers.UserSignUp) // register a new user
-	route.Post("/user/sign/in", controllers.UserSignIn) // auth, return Access & Refresh tokens
-	route.Get("/oauth/google/login", controllers.GoogleLogin)
-	route.Get("/oauth/google/callback", controllers.GoogleCallback)
+	v1.Post("/user/sign/up", controllers.UserSignUp) // register a new user
+	v1.Post("/user/sign/in", controllers.UserSignIn) // auth, return Access & Refresh tokens
+	v1.Get("/oauth/google/login", controllers.GoogleLogin)
+	v1.Get("/oauth/google/callback", controllers.GoogleCallback)
+	v1.Post("/user/reset-password", controllers.ResetPassword)
 }
