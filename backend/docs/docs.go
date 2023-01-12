@@ -490,7 +490,6 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "email",
-                "password_hash",
                 "user_role",
                 "user_status"
             ],
@@ -503,15 +502,28 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 255
                 },
+                "first_name": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "integer"
+                },
+                "last_name": {
+                    "type": "string"
                 },
                 "password_hash": {
                     "type": "string",
                     "maxLength": 255
                 },
+                "phone_number": {
+                    "type": "string",
+                    "maxLength": 255
+                },
                 "updated_at": {
                     "description": "Set to current unix seconds on updating or if it is zero on creating",
+                    "type": "string"
+                },
+                "user_image": {
                     "type": "string"
                 },
                 "user_role": {

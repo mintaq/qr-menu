@@ -2,13 +2,16 @@ package controllers
 
 import (
 	"context"
+	"encoding/json"
 	"strconv"
 	"time"
 
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/app/models"
+	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/repository"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/platform/cache"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/platform/database"
+	"gorm.io/gorm/clause"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -238,4 +241,165 @@ func UserSignOut(c *fiber.Ctx) error {
 
 	// Return status 204 no content.
 	return c.SendStatus(fiber.StatusNoContent)
+}
+
+func GoogleSignIn(c *fiber.Ctx) error {
+	googleSignIn := &models.GoogleSignIn{}
+	var foundedUser models.User
+
+	// Checking received data from JSON body.
+	if err := c.BodyParser(googleSignIn); err != nil {
+		// Return status 400 and error message.
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	// Validate the JWT is valid
+	claims, err := utils.ValidateGoogleJWT(googleSignIn.GoogleJWT)
+	if err != nil {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	// Get user by email.
+	tx := database.Database.First(&foundedUser, "email = ?", claims.Email)
+	if tx.Error != nil {
+		// If user not found -> Create new one
+		user := &models.User{
+			Email:      claims.Email,
+			FirstName:  claims.FirstName,
+			LastName:   claims.LastName,
+			UserRole:   repository.UserRoleName,
+			UserStatus: repository.ActiveUserStatus,
+		}
+
+		userCreateResult := database.Database.Create(&user)
+		if userCreateResult.Error != nil {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": true,
+				"msg":   tx.Error.Error(),
+			})
+		}
+	}
+
+	if claims.Email != foundedUser.Email {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"error": true,
+			"msg":   "Emails don't match",
+		})
+
+	}
+
+	// Get role credentials from founded user.
+	credentials, err := utils.GetCredentialsByRole(repository.UserRoleName)
+	if err != nil {
+		// Return status 400 and error message.
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	// create a JWT for OUR app and give it back to the client for future requests
+	tokens, err := utils.GenerateNewTokens(claims.Email, credentials)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   "Couldn't make authentication token",
+		})
+
+	}
+
+	// Return status 200 OK.
+	return c.JSON(fiber.Map{
+		"error": false,
+		"msg":   nil,
+		"tokens": fiber.Map{
+			"access":  tokens.Access,
+			"refresh": tokens.Refresh,
+		},
+	})
+}
+
+func GoogleLogin(c *fiber.Ctx) error {
+	oauthState := utils.GenerateState()
+	url := utils.GetAuthCodeURL(oauthState)
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"error":            false,
+		"msg":              nil,
+		"authenticate_url": url,
+	})
+}
+
+func GoogleCallback(c *fiber.Ctx) error {
+	data, err := utils.GetUserDataFromGoogle(c.Query("code"))
+	var userData models.GoogleClaims
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+	err = json.Unmarshal(data, &userData)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	user := models.User{
+		Email:      userData.Email,
+		FirstName:  userData.FirstName,
+		LastName:   userData.LastName,
+		UserRole:   repository.UserRoleName,
+		UserStatus: repository.ActiveUserStatus,
+		UserImage:  userData.Picture,
+	}
+
+	res := database.Database.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "email"}},
+		DoUpdates: clause.AssignmentColumns([]string{"first_name", "last_name", "user_image"}),
+	}).Create(&user)
+	if res.Error != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": true,
+			"msg":   res.Error.Error(),
+		})
+	}
+
+	// Get role credentials from founded user.
+	credentials, err := utils.GetCredentialsByRole(repository.UserRoleName)
+	if err != nil {
+		// Return status 400 and error message.
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	// create a JWT for OUR app and give it back to the client for future requests
+	tokens, err := utils.GenerateNewTokens(user.Email, credentials)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   "Couldn't make authentication token",
+		})
+
+	}
+
+	// Return status 200 OK.
+	return c.JSON(fiber.Map{
+		"error": false,
+		"msg":   nil,
+		"tokens": fiber.Map{
+			"access":  tokens.Access,
+			"refresh": tokens.Refresh,
+		},
+	})
 }
