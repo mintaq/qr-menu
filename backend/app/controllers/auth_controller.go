@@ -489,8 +489,6 @@ func CreateNewPassword(c *fiber.Ctx) error {
 	}
 
 	var newPassword models.CreatePasswordClaims
-	validate := utils.NewValidator()
-
 	if err := c.BodyParser(&newPassword); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": true,
@@ -498,6 +496,7 @@ func CreateNewPassword(c *fiber.Ctx) error {
 		})
 	}
 
+	validate := utils.NewValidator()
 	if err := validate.Struct(&newPassword); err != nil {
 		// Return, if some fields are not valid.
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
