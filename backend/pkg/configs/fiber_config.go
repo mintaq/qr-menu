@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -17,5 +18,7 @@ func FiberConfig() fiber.Config {
 	// Return Fiber configuration.
 	return fiber.Config{
 		ReadTimeout: time.Second * time.Duration(readTimeoutSecondsCount),
+		JSONEncoder: json.Marshal,
+		JSONDecoder: json.Unmarshal,
 	}
 }
