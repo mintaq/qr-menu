@@ -89,7 +89,7 @@ func UserSignUp(c *fiber.Ctx) error {
 		// Return status 500 and create user process error.
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": true,
-			"msg":   "Account is existed",
+			"msg":   "account is existed",
 		})
 	}
 
