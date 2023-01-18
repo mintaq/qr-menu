@@ -353,7 +353,7 @@ func GoogleLogin(c *fiber.Ctx) error {
 // @Tags User
 // @Accept json
 // @Produce json
-// @Success 200 {object} tokens
+// @Success 200 {object} models.Token
 // @Router /v1/oauth/google/callback [get]
 func GoogleCallback(c *fiber.Ctx) error {
 	data, err := utils.GetUserDataFromGoogle(c.Query("code"))
@@ -500,6 +500,13 @@ func ResetPassword(c *fiber.Ctx) error {
 }
 
 // CreateNewPassword method to create new password for user.
+// @Description Create new password for user.
+// @Summary create new password.
+// @Tags User
+// @Accept json
+// @Produce json
+// @Success 200 {int} id
+// @Router /v1/user/create-password [post]
 func CreateNewPassword(c *fiber.Ctx) error {
 	claims, err := utils.ExtractTokenMetadata(c)
 	if err != nil {

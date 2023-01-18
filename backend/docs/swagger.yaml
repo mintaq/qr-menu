@@ -39,6 +39,13 @@ definitions:
         minimum: 1
         type: integer
     type: object
+  models.Token:
+    properties:
+      access:
+        type: string
+      refresh:
+        type: string
+    type: object
   models.User:
     properties:
       created_at:
@@ -242,6 +249,21 @@ paths:
       summary: get all exists books
       tags:
       - Books
+  /v1/oauth/google/callback:
+    get:
+      consumes:
+      - application/json
+      description: Get data from Google and create/update user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Token'
+      summary: get user data from google.
+      tags:
+      - User
   /v1/oauth/google/login:
     get:
       consumes:
@@ -281,6 +303,36 @@ paths:
       summary: renew access and refresh tokens
       tags:
       - Token
+  /v1/user/create-password:
+    post:
+      consumes:
+      - application/json
+      description: Create new password for user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: int
+      summary: create new password.
+      tags:
+      - User
+  /v1/user/reset-password:
+    post:
+      consumes:
+      - application/json
+      description: Send email reset password.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: send email reset password.
+      tags:
+      - User
   /v1/user/sign/in:
     post:
       consumes:
