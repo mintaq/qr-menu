@@ -329,6 +329,13 @@ func GoogleSignIn(c *fiber.Ctx) error {
 }
 
 // GoogleLogin method to generate authenticate url.
+// @Description Generate authenticate URL.
+// @Summary generate authenticate URL.
+// @Tags User
+// @Accept json
+// @Produce json
+// @Success 200 {string} url
+// @Router /v1/oauth/google/login [get]
 func GoogleLogin(c *fiber.Ctx) error {
 	oauthState := utils.GenerateState()
 	url := utils.GetAuthCodeURL(oauthState)

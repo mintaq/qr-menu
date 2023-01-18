@@ -267,6 +267,29 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/oauth/google/login": {
+            "get": {
+                "description": "Generate authenticate URL.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "generate authenticate URL.",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/token/renew": {
             "post": {
                 "security": [

@@ -242,6 +242,21 @@ paths:
       summary: get all exists books
       tags:
       - Books
+  /v1/oauth/google/login:
+    get:
+      consumes:
+      - application/json
+      description: Generate authenticate URL.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: generate authenticate URL.
+      tags:
+      - User
   /v1/token/renew:
     post:
       consumes:
