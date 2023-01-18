@@ -354,6 +354,11 @@ const docTemplate = `{
         },
         "/v1/user/create-password": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Create new password for user.",
                 "consumes": [
                     "application/json"

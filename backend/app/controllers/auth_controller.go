@@ -506,6 +506,7 @@ func ResetPassword(c *fiber.Ctx) error {
 // @Accept json
 // @Produce json
 // @Success 200 {int} id
+// @Security ApiKeyAuth
 // @Router /v1/user/create-password [post]
 func CreateNewPassword(c *fiber.Ctx) error {
 	claims, err := utils.ExtractTokenMetadata(c)

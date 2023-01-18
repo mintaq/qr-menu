@@ -315,6 +315,8 @@ paths:
           description: OK
           schema:
             type: int
+      security:
+      - ApiKeyAuth: []
       summary: create new password.
       tags:
       - User
