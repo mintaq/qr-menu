@@ -348,6 +348,13 @@ func GoogleLogin(c *fiber.Ctx) error {
 }
 
 // GoogleCallback method to get user data from Google and create or update user.
+// @Description Get data from Google and create/update user.
+// @Summary get user data from google.
+// @Tags User
+// @Accept json
+// @Produce json
+// @Success 200 {object} tokens
+// @Router /v1/oauth/google/callback [get]
 func GoogleCallback(c *fiber.Ctx) error {
 	data, err := utils.GetUserDataFromGoogle(c.Query("code"))
 	var userData models.GoogleClaims
@@ -417,6 +424,13 @@ func GoogleCallback(c *fiber.Ctx) error {
 }
 
 // ResetPassword method to send email reset password to user.
+// @Description Send email reset password.
+// @Summary send email reset password.
+// @Tags User
+// @Accept json
+// @Produce json
+// @Success 200 {string} url
+// @Router /v1/user/reset-password [post]
 func ResetPassword(c *fiber.Ctx) error {
 	var emailResetPassword models.EmailResetPassword
 	if err := c.BodyParser(&emailResetPassword); err != nil {
