@@ -24,29 +24,9 @@ require (
 require (
 	cloud.google.com/go/compute v1.14.0 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
-	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
-	github.com/cristalhq/acmd v0.11.0 // indirect
-	github.com/ghodss/yaml v1.0.0 // indirect
-	github.com/go-critic/go-critic v0.6.5 // indirect
-	github.com/go-toolsmith/astcast v1.0.0 // indirect
-	github.com/go-toolsmith/astcopy v1.0.2 // indirect
-	github.com/go-toolsmith/astequal v1.0.3 // indirect
-	github.com/go-toolsmith/astfmt v1.0.0 // indirect
-	github.com/go-toolsmith/astp v1.0.0 // indirect
-	github.com/go-toolsmith/pkgload v1.0.2-0.20220101231613-e814995d17c5 // indirect
-	github.com/go-toolsmith/strparse v1.0.0 // indirect
-	github.com/go-toolsmith/typep v1.0.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/quasilyte/go-ruleguard v0.3.18 // indirect
-	github.com/quasilyte/gogrep v0.0.0-20221002170852-631b4cfd0c04 // indirect
-	github.com/quasilyte/regex/syntax v0.0.0-20210819130434-b3f0c404a727 // indirect
-	github.com/quasilyte/stdinfo v0.0.0-20220114132959-f7386bf02567 // indirect
-	github.com/russross/blackfriday/v2 v2.1.0 // indirect
-	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
-	github.com/urfave/cli/v2 v2.24.2 // indirect
-	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
-	golang.org/x/exp/typeparams v0.0.0-20230131120322-dfa7d7a641b0 // indirect
-	golang.org/x/mod v0.7.0 // indirect
+	github.com/mattn/go-sqlite3 v1.14.10 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
@@ -65,9 +45,6 @@ require (
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/goccy/go-json v0.10.0
-	github.com/golang-migrate/migrate/v4 v4.15.2 // indirect
-	github.com/hashicorp/errwrap v1.1.0 // indirect
-	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.13.0 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
@@ -86,18 +63,15 @@ require (
 	github.com/mattn/go-runewidth v0.0.14 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.3 // indirect
-	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/swaggo/files v1.0.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.43.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
-	go.uber.org/atomic v1.10.0 // indirect
 	golang.org/x/net v0.5.0 // indirect
 	golang.org/x/oauth2 v0.4.0
 	golang.org/x/sys v0.4.0 // indirect
 	golang.org/x/text v0.6.0 // indirect
 	golang.org/x/tools v0.5.0 // indirect
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

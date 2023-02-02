@@ -25,7 +25,7 @@ func MysqlGormConnection() {
 		log.Panic(err.Error())
 	}
 	Database, err = gorm.Open(mysql.Open(mysqlConnURL+"?parseTime=true"), &gorm.Config{
-		SkipDefaultTransaction: true,
+		SkipDefaultTransaction: false,
 		PrepareStmt:            true,
 	})
 
