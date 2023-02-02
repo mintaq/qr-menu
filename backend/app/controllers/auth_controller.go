@@ -89,7 +89,7 @@ func UserSignUp(c *fiber.Ctx) error {
 		// Return status 500 and create user process error.
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": true,
-			"msg":   tx.Error.Error(),
+			"msg":   "account is existed",
 		})
 	}
 
@@ -158,8 +158,10 @@ func UserSignIn(c *fiber.Ctx) error {
 		})
 	}
 
+	strFoundedUserId := strconv.FormatUint(foundedUser.ID, 10)
+
 	// Generate a new pair of access and refresh tokens.
-	tokens, err := utils.GenerateNewTokens(strconv.Itoa(foundedUser.ID), credentials)
+	tokens, err := utils.GenerateNewTokens(strFoundedUserId, credentials)
 	if err != nil {
 		// Return status 500 and token generation error.
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -179,7 +181,7 @@ func UserSignIn(c *fiber.Ctx) error {
 	}
 
 	// Save refresh token to Redis.
-	errSaveToRedis := connRedis.Set(context.Background(), strconv.Itoa(foundedUser.ID), tokens.Refresh, 0).Err()
+	errSaveToRedis := connRedis.Set(context.Background(), strFoundedUserId, tokens.Refresh, 0).Err()
 	if errSaveToRedis != nil {
 		// Return status 500 and Redis connection error.
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -329,6 +331,13 @@ func GoogleSignIn(c *fiber.Ctx) error {
 }
 
 // GoogleLogin method to generate authenticate url.
+// @Description Generate authenticate URL.
+// @Summary generate authenticate URL.
+// @Tags User
+// @Accept json
+// @Produce json
+// @Success 200 {string} url
+// @Router /v1/oauth/google/login [get]
 func GoogleLogin(c *fiber.Ctx) error {
 	oauthState := utils.GenerateState()
 	url := utils.GetAuthCodeURL(oauthState)
@@ -341,6 +350,13 @@ func GoogleLogin(c *fiber.Ctx) error {
 }
 
 // GoogleCallback method to get user data from Google and create or update user.
+// @Description Get data from Google and create/update user.
+// @Summary get user data from google.
+// @Tags User
+// @Accept json
+// @Produce json
+// @Success 200 {object} models.Token
+// @Router /v1/oauth/google/callback [get]
 func GoogleCallback(c *fiber.Ctx) error {
 	data, err := utils.GetUserDataFromGoogle(c.Query("code"))
 	var userData models.GoogleClaims
@@ -410,6 +426,13 @@ func GoogleCallback(c *fiber.Ctx) error {
 }
 
 // ResetPassword method to send email reset password to user.
+// @Description Send email reset password.
+// @Summary send email reset password.
+// @Tags User
+// @Accept json
+// @Produce json
+// @Success 200 {string} url
+// @Router /v1/user/reset-password [post]
 func ResetPassword(c *fiber.Ctx) error {
 	var emailResetPassword models.EmailResetPassword
 	if err := c.BodyParser(&emailResetPassword); err != nil {
@@ -447,7 +470,7 @@ func ResetPassword(c *fiber.Ctx) error {
 	}
 
 	// Generate a new pair of access and refresh tokens.
-	tokens, err := utils.GenerateNewTokens(strconv.Itoa(user.ID), credentials)
+	tokens, err := utils.GenerateNewTokens(strconv.FormatUint(user.ID, 10), credentials)
 	if err != nil {
 		// Return status 500 and token generation error.
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -479,6 +502,14 @@ func ResetPassword(c *fiber.Ctx) error {
 }
 
 // CreateNewPassword method to create new password for user.
+// @Description Create new password for user.
+// @Summary create new password.
+// @Tags User
+// @Accept json
+// @Produce json
+// @Success 200 {int} id
+// @Security ApiKeyAuth
+// @Router /v1/user/create-password [post]
 func CreateNewPassword(c *fiber.Ctx) error {
 	claims, err := utils.ExtractTokenMetadata(c)
 	if err != nil {
@@ -489,8 +520,6 @@ func CreateNewPassword(c *fiber.Ctx) error {
 	}
 
 	var newPassword models.CreatePasswordClaims
-	validate := utils.NewValidator()
-
 	if err := c.BodyParser(&newPassword); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": true,
@@ -498,6 +527,7 @@ func CreateNewPassword(c *fiber.Ctx) error {
 		})
 	}
 
+	validate := utils.NewValidator()
 	if err := validate.Struct(&newPassword); err != nil {
 		// Return, if some fields are not valid.
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
