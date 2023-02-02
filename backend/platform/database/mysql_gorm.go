@@ -4,7 +4,6 @@ package database
 import (
 	"log"
 
-	"gitlab.xipat.com/omega-team3/qr-menu-backend/app/models"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -30,10 +29,6 @@ func MysqlGormConnection() {
 	})
 
 	if err != nil {
-		log.Panic(err.Error())
-	}
-
-	if err := Database.AutoMigrate(&models.User{}); err != nil {
 		log.Panic(err.Error())
 	}
 }
