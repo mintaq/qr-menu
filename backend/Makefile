@@ -3,7 +3,7 @@
 APP_NAME = apiserver
 BUILD_DIR = $(PWD)/build
 MIGRATIONS_FOLDER = $(PWD)/platform/migrations
-DATABASE_URL = mysql://root:@tcp(127.0.0.1:3306)/learn_go_fiber
+DATABASE_URL = mysql://root:@tcp(127.0.0.1:3306)/qr_menu
 
 clean:
 	rm -rf ./build

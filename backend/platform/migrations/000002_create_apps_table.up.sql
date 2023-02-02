@@ -1,4 +1,4 @@
-CREATE TABLE `learn_go_fiber`.`apps` (
+CREATE TABLE `qr_menu`.`apps` (
     `id` INT NOT NULL AUTO_INCREMENT,
     `app_name` VARCHAR(255) NOT NULL,
     `api_key` MEDIUMTEXT NOT NULL,
