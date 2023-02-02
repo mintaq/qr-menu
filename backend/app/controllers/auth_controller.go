@@ -1,16 +1,21 @@
 package controllers
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
+	"regexp"
 	"strconv"
 	"time"
 
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/app/models"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/repository"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils"
+	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils/sapo"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/platform/cache"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/platform/database"
 	"gorm.io/gorm/clause"
@@ -556,5 +561,97 @@ func CreateNewPassword(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"error": false,
 		"msg":   claims.UserID,
+	})
+}
+
+func GetSapoAccessToken(c *fiber.Ctx) error {
+	code := c.Query("code")
+	store := c.Query("store")
+	if code == "" || store == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   "code or store not found in query!",
+		})
+	}
+
+	var app models.App
+	tx := database.Database.First(&app, "gateway = ?", "sapo")
+	if tx.Error != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": true,
+			"msg":   "app not found",
+		})
+	}
+
+	uri := fmt.Sprintf("https://%s/admin/oauth/access_token", store)
+
+	type Payload struct {
+		ClientId     string `json:"client_id"`
+		ClientSecret string `json:"client_secret"`
+		Code         string `json:"code"`
+	}
+
+	payload := Payload{
+		ClientId:     app.ApiKey,
+		ClientSecret: app.SecretKey,
+		Code:         code,
+	}
+
+	body, _ := json.Marshal(payload)
+
+	resp, err := http.Post(uri, "application/json", bytes.NewBuffer(body)) // #nosec
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	defer resp.Body.Close()
+
+	var jsonStr string
+
+	if resp.StatusCode == http.StatusOK {
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			panic(err)
+		}
+		jsonStr = string(body)
+	}
+
+	return c.JSON(fiber.Map{
+		"error": false,
+		"msg":   jsonStr,
+	})
+}
+
+func GetSapoAuthURL(c *fiber.Ctx) error {
+	store := c.Query("store")
+	if store == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   "store not found in query!",
+		})
+	}
+
+	match, _ := regexp.MatchString(`([\S]+).mysapo.net$`, store)
+	if !match {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   "store name is invalid!",
+		})
+	}
+
+	url, err := sapo.GetSapoAuthURL(store)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"error": false,
+		"msg":   url,
 	})
 }

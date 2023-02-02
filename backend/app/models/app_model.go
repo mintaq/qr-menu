@@ -6,7 +6,7 @@ type App struct {
 	AppName     string `json:"app_name" gorm:"unique" validate:"required,lte=255"`
 	ApiKey      string `json:"api_key"`
 	SecretKey   string `json:"secret_key"`
-	Scopes      int    `json:"scopes"`
+	Scopes      string `json:"scopes"`
 	RedirectUrl string `json:"redirect_url"`
 	Gateway     string `json:"gateway"`
 	TimeModel
