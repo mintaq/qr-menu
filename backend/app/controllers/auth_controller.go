@@ -642,7 +642,7 @@ func GetSapoAuthURL(c *fiber.Ctx) error {
 		})
 	}
 
-	url, err := sapo.GetSapoAuthURL(store)
+	url, err := sapo.GetAuthURLByStore(store)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": true,

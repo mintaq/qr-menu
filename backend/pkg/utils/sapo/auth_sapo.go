@@ -7,7 +7,7 @@ import (
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/platform/database"
 )
 
-func GetSapoAuthURL(store string) (string, error) {
+func GetAuthURLByStore(store string) (string, error) {
 	var app models.App
 
 	tx := database.Database.First(&app, "gateway = ?", "sapo")
