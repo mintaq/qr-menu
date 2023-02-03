@@ -253,88 +253,6 @@ func UserSignOut(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
-func GoogleSignIn(c *fiber.Ctx) error {
-	googleSignIn := &models.GoogleSignIn{}
-	var foundedUser models.User
-
-	// Checking received data from JSON body.
-	if err := c.BodyParser(googleSignIn); err != nil {
-		// Return status 400 and error message.
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
-	}
-
-	// Validate the JWT is valid
-	claims, err := utils.ValidateGoogleJWT(googleSignIn.GoogleJWT)
-	if err != nil {
-		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
-	}
-
-	// Get user by email.
-	tx := database.Database.First(&foundedUser, "email = ?", claims.Email)
-	if tx.Error != nil {
-		// If user not found -> Create new one
-		user := &models.User{
-			Email:      claims.Email,
-			FirstName:  claims.FirstName,
-			LastName:   claims.LastName,
-			UserRole:   repository.UserRoleName,
-			UserStatus: repository.ActiveUserStatus,
-		}
-
-		userCreateResult := database.Database.Create(&user)
-		if userCreateResult.Error != nil {
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"error": true,
-				"msg":   tx.Error.Error(),
-			})
-		}
-	}
-
-	if claims.Email != foundedUser.Email {
-		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-			"error": true,
-			"msg":   "Emails don't match",
-		})
-
-	}
-
-	// Get role credentials from founded user.
-	credentials, err := utils.GetCredentialsByRole(repository.UserRoleName)
-	if err != nil {
-		// Return status 400 and error message.
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
-	}
-
-	// create a JWT for OUR app and give it back to the client for future requests
-	tokens, err := utils.GenerateNewTokens(claims.Email, credentials)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   "Couldn't make authentication token",
-		})
-
-	}
-
-	// Return status 200 OK.
-	return c.JSON(fiber.Map{
-		"error": false,
-		"msg":   nil,
-		"tokens": fiber.Map{
-			"access":  tokens.Access,
-			"refresh": tokens.Refresh,
-		},
-	})
-}
-
 // GoogleLogin method to generate authenticate url.
 // @Description Generate authenticate URL.
 // @Summary generate authenticate URL.
@@ -410,7 +328,7 @@ func GoogleCallback(c *fiber.Ctx) error {
 	}
 
 	// create a JWT for OUR app and give it back to the client for future requests
-	tokens, err := utils.GenerateNewTokens(user.Email, credentials)
+	tokens, err := utils.GenerateNewTokens(strconv.FormatUint(user.ID, 10), credentials)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": true,
