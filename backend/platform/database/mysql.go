@@ -6,9 +6,8 @@ import (
 	"strconv"
 	"time"
 
-	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils"
-
 	"github.com/jmoiron/sqlx"
+	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils"
 
 	_ "github.com/go-sql-driver/mysql" // load driver for Mysql
 )
