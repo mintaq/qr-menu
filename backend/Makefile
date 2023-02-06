@@ -30,8 +30,14 @@ run: swag build
 migrate.up:
 	migrate -path $(MIGRATIONS_FOLDER) -database "$(DATABASE_URL)" up
 
+migrate.up.1:
+	migrate -path $(MIGRATIONS_FOLDER) -database "$(DATABASE_URL)" up 1
+
 migrate.down:
 	migrate -path $(MIGRATIONS_FOLDER) -database "$(DATABASE_URL)" down
+
+migrate.down.1:
+	migrate -path $(MIGRATIONS_FOLDER) -database "$(DATABASE_URL)" down 1
 
 migrate.force:
 	migrate -path $(MIGRATIONS_FOLDER) -database "$(DATABASE_URL)" force $(version)

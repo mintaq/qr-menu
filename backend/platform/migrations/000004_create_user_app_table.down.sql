@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS "user_app"
+DROP TABLE IF EXISTS `qr_menu`.`businesses`

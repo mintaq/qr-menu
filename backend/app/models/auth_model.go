@@ -42,3 +42,9 @@ type CreatePasswordClaims struct {
 type EmailResetPassword struct {
 	Email string `json:"email" validate:"required,email,lte=255"`
 }
+
+type CreateApp struct {
+	AppName   string `json:"app_name" validate:"required,lte=255"`
+	ApiKey    string `json:"api_key" validate:"required"`
+	SecretKey string `json:"secret_key" validate:"required"`
+}

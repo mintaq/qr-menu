@@ -266,6 +266,29 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/kiotviet/create-user": {
+            "post": {
+                "description": "Create Kiotviet user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "create Kiotviet user",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/oauth/google/callback": {
             "get": {
                 "description": "Get data from Google and create/update user.",
@@ -302,6 +325,52 @@ const docTemplate = `{
                     "User"
                 ],
                 "summary": "generate authenticate URL.",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/sapo/get-auth-url": {
+            "get": {
+                "description": "Get Sapo authenticate URL",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "get authenticate URL",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/sapo/get-token": {
+            "get": {
+                "description": "Get Sapo user access token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "get access token",
                 "responses": {
                     "200": {
                         "description": "OK",
