@@ -8,3 +8,11 @@ type UserApp struct {
 	AccessToken string `json:"access_token" validate:"required"`
 	TimeModel
 }
+
+type Tabler interface {
+	TableName() string
+}
+
+func (UserApp) TableName() string {
+	return "user_app"
+}

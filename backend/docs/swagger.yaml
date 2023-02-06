@@ -263,7 +263,7 @@ paths:
             type: string
       summary: create Kiotviet user
       tags:
-      - User
+      - KiotViet
   /v1/oauth/google/callback:
     get:
       consumes:
@@ -308,7 +308,7 @@ paths:
             type: string
       summary: get authenticate URL
       tags:
-      - User
+      - Sapo
   /v1/sapo/get-token:
     get:
       consumes:
@@ -323,7 +323,7 @@ paths:
             type: string
       summary: get access token
       tags:
-      - User
+      - Sapo
   /v1/token/renew:
     post:
       consumes:

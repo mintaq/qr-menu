@@ -22,5 +22,4 @@ func PublicRoutes(a *fiber.App) {
 	v1.Get("/oauth/google/callback", controllers.GoogleCallback)
 	v1.Post("/user/reset-password", controllers.ResetPassword)
 	v1.Get("/sapo/get-token", controllers.GetSapoAccessToken)
-	v1.Get("/sapo/get-auth-url", controllers.GetSapoAuthURL)
 }

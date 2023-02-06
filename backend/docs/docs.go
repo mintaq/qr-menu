@@ -276,7 +276,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "User"
+                    "KiotViet"
                 ],
                 "summary": "create Kiotviet user",
                 "responses": {
@@ -345,7 +345,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "User"
+                    "Sapo"
                 ],
                 "summary": "get authenticate URL",
                 "responses": {
@@ -368,7 +368,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "User"
+                    "Sapo"
                 ],
                 "summary": "get access token",
                 "responses": {
