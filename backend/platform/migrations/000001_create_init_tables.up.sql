@@ -1,5 +1,5 @@
 CREATE TABLE `qr_menu`.`users` (
-    `id` INT NOT NULL AUTO_INCREMENT,
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `email` VARCHAR(255) NOT NULL,
     `password_hash` VARCHAR(255) NOT NULL,
     `phone_number` VARCHAR(255) NULL,

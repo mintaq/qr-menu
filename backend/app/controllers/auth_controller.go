@@ -599,7 +599,7 @@ func GetSapoAuthURL(c *fiber.Ctx) error {
 // @Success 200 {string} url
 // @Router /v1/kiotviet/create-user [post]
 func CreateKiotvietUser(c *fiber.Ctx) error {
-	claims, err := utils.ExtractTokenMetadata(c)
+	_, err := utils.ExtractTokenMetadata(c)
 	if err != nil {
 		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{
 			"error": true,
@@ -629,17 +629,6 @@ func CreateKiotvietUser(c *fiber.Ctx) error {
 
 	insertedApp := database.Database.Create(newApp)
 	if insertedApp.Error != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": true,
-			"msg":   insertedApp.Error.Error(),
-		})
-	}
-
-	business := &models.Business{}
-	business.AppId = newApp.ID
-	business.UserId = uint64(claims.UserID)
-	insertedBusiness := database.Database.Create(business)
-	if insertedBusiness.Error != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": true,
 			"msg":   insertedApp.Error.Error(),
