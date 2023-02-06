@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -28,7 +27,6 @@ func ExtractTokenMetadata(c *fiber.Ctx) (*TokenMetadata, error) {
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if ok && token.Valid {
 		// User ID.
-		log.Print(claims)
 		userID, err := strconv.Atoi(claims["id"].(string))
 		if err != nil {
 			return nil, err

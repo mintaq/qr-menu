@@ -482,6 +482,14 @@ func CreateNewPassword(c *fiber.Ctx) error {
 	})
 }
 
+// GetSapoAccessToken method to get Sapo access token
+// @Description Get Sapo user access token
+// @Summary get access token
+// @Tags User
+// @Accept json
+// @Produce json
+// @Success 200 {string} token
+// @Router /v1/sapo/get-token [get]
 func GetSapoAccessToken(c *fiber.Ctx) error {
 	code := c.Query("code")
 	store := c.Query("store")
@@ -543,6 +551,14 @@ func GetSapoAccessToken(c *fiber.Ctx) error {
 	})
 }
 
+// GetSapoAuthURL method to get Sapo authenticate URL
+// @Description Get Sapo authenticate URL
+// @Summary get authenticate URL
+// @Tags User
+// @Accept json
+// @Produce json
+// @Success 200 {string} url
+// @Router /v1/sapo/get-auth-url [get]
 func GetSapoAuthURL(c *fiber.Ctx) error {
 	store := c.Query("store")
 	if store == "" {
@@ -571,5 +587,67 @@ func GetSapoAuthURL(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"error": false,
 		"msg":   url,
+	})
+}
+
+// CreateKiotvietUser method to create Kiotviet user
+// @Description Create Kiotviet user
+// @Summary create Kiotviet user
+// @Tags User
+// @Accept json
+// @Produce json
+// @Success 200 {string} url
+// @Router /v1/kiotviet/create-user [post]
+func CreateKiotvietUser(c *fiber.Ctx) error {
+	claims, err := utils.ExtractTokenMetadata(c)
+	if err != nil {
+		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	newApp := &models.App{}
+
+	if err := c.BodyParser(newApp); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	validate := utils.NewValidator()
+	if err := validate.Struct(newApp); err != nil {
+		// Return, if some fields are not valid.
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   utils.ValidatorErrors(err),
+		})
+	}
+
+	newApp.Gateway = "kiotviet"
+
+	insertedApp := database.Database.Create(newApp)
+	if insertedApp.Error != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   insertedApp.Error.Error(),
+		})
+	}
+
+	business := &models.Business{}
+	business.AppId = newApp.ID
+	business.UserId = uint64(claims.UserID)
+	insertedBusiness := database.Database.Create(business)
+	if insertedBusiness.Error != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   insertedApp.Error.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"error": false,
+		"msg":   "",
 	})
 }

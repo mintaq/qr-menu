@@ -249,6 +249,21 @@ paths:
       summary: get all exists books
       tags:
       - Books
+  /v1/kiotviet/create-user:
+    post:
+      consumes:
+      - application/json
+      description: Create Kiotviet user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: create Kiotviet user
+      tags:
+      - User
   /v1/oauth/google/callback:
     get:
       consumes:
@@ -277,6 +292,36 @@ paths:
           schema:
             type: string
       summary: generate authenticate URL.
+      tags:
+      - User
+  /v1/sapo/get-auth-url:
+    get:
+      consumes:
+      - application/json
+      description: Get Sapo authenticate URL
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: get authenticate URL
+      tags:
+      - User
+  /v1/sapo/get-token:
+    get:
+      consumes:
+      - application/json
+      description: Get Sapo user access token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: get access token
       tags:
       - User
   /v1/token/renew:
