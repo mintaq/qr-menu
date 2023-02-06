@@ -637,6 +637,7 @@ func CreateKiotvietUser(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{
 		"error": false,
-		"msg":   "",
+		"msg":   "success",
+		"data":  newApp,
 	})
 }
