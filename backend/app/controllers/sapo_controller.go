@@ -93,7 +93,7 @@ func GetSapoAccessToken(c *fiber.Ctx) error {
 	if tx := database.Database.Create(userApp); tx.Error != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": true,
-			"msg":   err.Error(),
+			"msg":   tx.Error.Error(),
 		})
 	}
 
