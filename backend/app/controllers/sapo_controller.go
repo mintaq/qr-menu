@@ -99,7 +99,7 @@ func GetSapoAccessToken(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{
 		"error": false,
-		"msg":   accessToken,
+		"msg":   "success",
 	})
 }
 
