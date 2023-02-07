@@ -8,6 +8,7 @@ import (
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/app/models"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/repository"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils"
+	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/worker"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/worker/tasks"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/platform/database"
 )
@@ -455,7 +456,7 @@ func DeleteBook(c *fiber.Ctx) error {
 
 func Test(c *fiber.Ctx) error {
 	task, _ := tasks.NewEmailDeliveryTask(1, "1")
-	info, err := utils.AsynqClient.Enqueue(task)
+	info, err := worker.AsynqClient.Enqueue(task)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": true,

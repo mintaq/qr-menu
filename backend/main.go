@@ -7,6 +7,7 @@ import (
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/middleware"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/routes"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils"
+	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/worker"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/platform/database"
 
 	"github.com/gofiber/fiber/v2"
@@ -46,9 +47,9 @@ func main() {
 	routes.NotFoundRoute(app) // Register route for 404 Error.
 
 	// Redis client.
-	utils.CreateRedisClient()
-	defer utils.AsynqClient.Close()
-	go utils.StartRedisServer()
+	worker.CreateRedisClient()
+	defer worker.AsynqClient.Close()
+	go worker.StartRedisServer()
 
 	// Start server (with or without graceful shutdown).
 	if os.Getenv("STAGE_STATUS") == "dev" {

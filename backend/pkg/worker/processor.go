@@ -1,14 +1,15 @@
-package utils
+package worker
 
 import (
 	"log"
 
 	"github.com/hibiken/asynq"
+	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/worker/tasks"
 )
 
 func StartRedisServer() {
-	redisConnURL, err := ConnectionURLBuilder("redis")
+	redisConnURL, err := utils.ConnectionURLBuilder("redis")
 	if err != nil {
 		log.Panic(err.Error())
 	}
