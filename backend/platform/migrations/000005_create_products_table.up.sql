@@ -1,6 +1,6 @@
 CREATE TABLE `qr_menu`.`products` (
     `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    `user_app_id` BIGINT UNSIGNED NOT NULL,
+    `store_id` BIGINT UNSIGNED NOT NULL,
     `content` MEDIUMTEXT NULL DEFAULT NULL COMMENT 'The HTML of product',
     `summary` MEDIUMTEXT NULL DEFAULT NULL COMMENT 'The short description of product',
     `created_on` TIMESTAMP NULL,
@@ -19,7 +19,7 @@ CREATE TABLE `qr_menu`.`products` (
     `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP on update CURRENT_TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
-    INDEX (`user_app_id`),
+    INDEX (`store_id`),
     INDEX (`product_id`),
     INDEX (`product_type`)
 ) ENGINE = InnoDB CHARSET = utf8mb4 COLLATE utf8mb4_general_ci;

@@ -1,27 +1,69 @@
 package models
 
-import "time"
+import (
+	"database/sql/driver"
+	"encoding/json"
+	"time"
+)
 
+type SapoProductResp struct {
+	Content     string       `json:"content"`
+	Summary     string       `json:"summary"`
+	CreatedOn   time.Time    `json:"created_on"`
+	Alias       string       `json:"alias"`
+	ProductId   uint64       `json:"id" gorm:"column:product_id" validate:"required"`
+	Images      ImageArray   `json:"images"`
+	Options     OptionArray  `json:"options"`
+	ProductType string       `json:"product_type" validate:"required"`
+	PublishedOn time.Time    `json:"published_on"`
+	Tags        string       `json:"tags"`
+	ProductName string       `json:"name" gorm:"column:product_name" validate:"required"`
+	ModifiedOn  time.Time    `json:"modified_on"`
+	Variants    VariantArray `json:"variants"`
+	Vendor      string       `json:"vendor"`
+}
+
+// User struct to describe Product object.
 type Product struct {
 	BasicModel
-	UserAppId   uint64    `json:"user_app_id" validate:"required"`
-	Content     string    `json:"content"`
-	Summary     string    `json:"summary"`
-	CreatedOn   time.Time `json:"created_on"`
-	Alias       string    `json:"alias"`
-	ProductId   uint64    `json:"product_id" validate:"required"`
-	Images      []Image   `json:"images"`
-	Options     []Option  `json:"options"`
-	ProductType string    `json:"product_type" validate:"required"`
-	PublishedOn time.Time `json:"published_on"`
-	Tags        string    `json:"tags"`
-	ProductName string    `json:"product_name" validate:"required"`
-	ModifiedOn  time.Time `json:"modified_on"`
-	Variants    []Variant `json:"variants"`
-	Vendor      string    `json:"vendor"`
-	Gateway     string    `json:"gateway" validate:"required"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	SapoProductResp
+	StoreId   uint64    `json:"store_id" validate:"required"`
+	Gateway   string    `json:"gateway" validate:"required"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+type VariantArray []Variant
+
+func (sla *VariantArray) Scan(src interface{}) error {
+	return json.Unmarshal(src.([]byte), &sla)
+}
+
+func (sla VariantArray) Value() (driver.Value, error) {
+	val, err := json.Marshal(sla)
+	return string(val), err
+}
+
+type ImageArray []Variant
+
+func (sla *ImageArray) Scan(src interface{}) error {
+	return json.Unmarshal(src.([]byte), &sla)
+}
+
+func (sla ImageArray) Value() (driver.Value, error) {
+	val, err := json.Marshal(sla)
+	return string(val), err
+}
+
+type OptionArray []Variant
+
+func (sla *OptionArray) Scan(src interface{}) error {
+	return json.Unmarshal(src.([]byte), &sla)
+}
+
+func (sla OptionArray) Value() (driver.Value, error) {
+	val, err := json.Marshal(sla)
+	return string(val), err
 }
 
 type ProductResp struct {

@@ -17,7 +17,7 @@ func SyncProducts(page, limit int, store string) error {
 		return tx.Error
 	}
 
-	requestURI := fmt.Sprintf("https://%s/admin/products.json", store)
+	requestURI := fmt.Sprintf("https://%s/admin/products.json?page=%d&limit=%d", store, page, limit)
 	req, err := http.NewRequest(http.MethodGet, requestURI, http.NoBody)
 	if err != nil {
 		return err
@@ -30,7 +30,7 @@ func SyncProducts(page, limit int, store string) error {
 	defer resp.Body.Close()
 
 	type RespProducts struct {
-		Products []models.Product
+		Products []models.SapoProductResp
 	}
 
 	respProducts := new(RespProducts)
@@ -40,7 +40,21 @@ func SyncProducts(page, limit int, store string) error {
 		if err != nil {
 			return err
 		}
+	}
 
+	products := []models.Product{}
+
+	for i := 0; i < len(respProducts.Products); i++ {
+		product := models.Product{}
+		product.StoreId = foundStore.ID
+		product.Gateway = "sapo"
+		product.SapoProductResp = respProducts.Products[i]
+
+		products = append(products, product)
+	}
+
+	if tx := database.Database.Table("products").Create(&products); tx.Error != nil {
+		return tx.Error
 	}
 
 	return nil
