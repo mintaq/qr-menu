@@ -15,7 +15,7 @@ type SyncSapoProductsPayload struct {
 	UserAppId uint64
 }
 
-func NewSyncSapoProductsRecursiveTask(sinceId int, limit int, userAppId uint64) (*asynq.Task, error) {
+func NewSyncSapoProductsRecursiveTask(sinceId, limit int, userAppId uint64) (*asynq.Task, error) {
 	payload, err := json.Marshal(SyncSapoProductsPayload{SinceId: sinceId, Limit: limit, UserAppId: userAppId})
 	if err != nil {
 		return nil, err

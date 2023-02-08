@@ -9,5 +9,6 @@ CREATE TABLE `qr_menu`.`apps` (
     `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP on update CURRENT_TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
-    UNIQUE (`app_name`)
+    UNIQUE (`app_name`),
+    INDEX (`gateway`)
 ) ENGINE = InnoDB CHARSET = utf8mb4 COLLATE utf8mb4_general_ci;

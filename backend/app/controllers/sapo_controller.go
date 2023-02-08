@@ -86,11 +86,12 @@ func GetSapoAccessToken(c *fiber.Ctx) error {
 		}
 	}
 
-	userApp := new(models.UserApp)
-	userApp.UserId, _ = strconv.ParseUint(userId, 10, 64)
-	userApp.AppId = app.ID
-	userApp.AccessToken = accessToken.AccessToken
-	if tx := database.Database.Create(userApp); tx.Error != nil {
+	newStore := new(models.Store)
+	newStore.UserId, _ = strconv.ParseUint(userId, 10, 64)
+	newStore.AppId = app.ID
+	newStore.Store = store
+	newStore.AccessToken = accessToken.AccessToken
+	if tx := database.Database.Create(newStore); tx.Error != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": true,
 			"msg":   tx.Error.Error(),

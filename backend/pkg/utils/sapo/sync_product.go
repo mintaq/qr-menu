@@ -1,5 +1,5 @@
 package sapo
 
-func SyncProducts(sinceId int, limit int, userAppId uint64) error {
+func SyncProducts(sinceId, limit int, userAppId uint64) error {
 	return nil
 }
