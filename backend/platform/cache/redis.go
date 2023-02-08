@@ -6,7 +6,8 @@ import (
 
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils"
 
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/extra/redisotel/v9"
+	"github.com/redis/go-redis/v9"
 )
 
 // RedisConnection func for connect to Redis server.
@@ -27,5 +28,17 @@ func RedisConnection() (*redis.Client, error) {
 		DB:       dbNumber,
 	}
 
-	return redis.NewClient(options), nil
+	rdb := redis.NewClient(options)
+
+	// Enable tracing instrumentation.
+	if err := redisotel.InstrumentTracing(rdb); err != nil {
+		panic(err)
+	}
+
+	// Enable metrics instrumentation.
+	if err := redisotel.InstrumentMetrics(rdb); err != nil {
+		panic(err)
+	}
+
+	return rdb, nil
 }

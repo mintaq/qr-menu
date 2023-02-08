@@ -2,7 +2,7 @@ package models
 
 // User struct to describe User object.
 type User struct {
-	ID           uint64 `json:"id" gorm:"primarykey"`
+	BasicModel
 	Email        string `json:"email" gorm:"unique" validate:"required,email,lte=255"`
 	PasswordHash string `json:"password_hash,omitempty" validate:"lte=255"`
 	PhoneNumber  string `json:"phone_number" validate:"lte=255"`
@@ -11,5 +11,4 @@ type User struct {
 	LastName     string `json:"last_name"`
 	UserRole     string `json:"user_role" gorm:"default:user" validate:"required,lte=25"`
 	UserImage    string `json:"user_image"`
-	TimeModel
 }
