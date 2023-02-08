@@ -8,5 +8,5 @@ CREATE TABLE `qr_menu`.`sites` (
     PRIMARY KEY (`id`),
     INDEX (`user_id`),
     INDEX (`name`),
-    INDEX (`subdomain`)
+    UNIQUE (`subdomain`)
 ) ENGINE = InnoDB CHARSET = utf8mb4 COLLATE utf8mb4_general_ci;
