@@ -8,6 +8,7 @@ import (
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/app/models"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/repository"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils"
+	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils/sapo"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/worker"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/worker/tasks"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/platform/database"
@@ -455,6 +456,7 @@ func DeleteBook(c *fiber.Ctx) error {
 }
 
 func Test(c *fiber.Ctx) error {
+	store := c.Query("store")
 	task, _ := tasks.NewEmailDeliveryTask(1, "1")
 	info, err := worker.AsynqClient.Enqueue(task)
 	if err != nil {
@@ -463,6 +465,15 @@ func Test(c *fiber.Ctx) error {
 			"msg":   err.Error(),
 		})
 	}
+
+	err = sapo.SyncProducts(1, 250, store)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"error": false,
 		"msg":   info.CompletedAt,

@@ -51,6 +51,9 @@ func main() {
 	defer worker.AsynqClient.Close()
 	go worker.StartRedisServer()
 
+	// Http client.
+	utils.CreateHttpClient()
+
 	// Start server (with or without graceful shutdown).
 	if os.Getenv("STAGE_STATUS") == "dev" {
 		utils.StartServer(app)
