@@ -19,3 +19,4 @@ tmp/
 hosts.ini
 *.out
 /.vscode
+**__debug_bin
