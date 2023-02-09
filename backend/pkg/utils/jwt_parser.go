@@ -1,9 +1,11 @@
 package utils
 
 import (
+	"errors"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
@@ -34,6 +36,10 @@ func ExtractTokenMetadata(c *fiber.Ctx) (*TokenMetadata, error) {
 
 		// Expires time.
 		expires := int64(claims["expires"].(float64))
+
+		if expires < time.Now().Unix() {
+			return nil, errors.New("token is expired")
+		}
 
 		// User credentials.
 		credentials := map[string]bool{

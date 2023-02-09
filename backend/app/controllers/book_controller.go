@@ -1,16 +1,18 @@
 package controllers
 
 import (
+	"image/color"
+	"math/rand"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/skip2/go-qrcode"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/app/models"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/repository"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils"
-	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils/sapo"
-	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/worker"
-	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/worker/tasks"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/platform/database"
 )
 
@@ -457,8 +459,10 @@ func DeleteBook(c *fiber.Ctx) error {
 
 func Test(c *fiber.Ctx) error {
 	store := c.Query("store")
-	task, _ := tasks.NewEmailDeliveryTask(1, "1")
-	info, err := worker.AsynqClient.Enqueue(task)
+
+	filePath := os.Getenv("STORAGE_ABSOLUTE_PATH") + "/app/" + store
+
+	err := os.MkdirAll(filePath, os.ModePerm)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": true,
@@ -466,15 +470,9 @@ func Test(c *fiber.Ctx) error {
 		})
 	}
 
-	_, err = sapo.SyncProducts(1, 250, store)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
-	}
+	file := filePath + "/" + strconv.Itoa(rand.Intn(100000)) + ".png"
 
-	_, err = sapo.SyncCustomCollections(1, 250, store)
+	err = qrcode.WriteColorFile("https://dingdoong.io", qrcode.Highest, 256, color.Transparent, color.White, file)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": true,
@@ -484,6 +482,6 @@ func Test(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"error": false,
-		"msg":   info.CompletedAt,
+		"msg":   file,
 	})
 }
