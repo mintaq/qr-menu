@@ -23,3 +23,5 @@ CREATE TABLE `qr_menu`.`products` (
     INDEX (`product_id`),
     INDEX (`product_type`)
 ) ENGINE = InnoDB CHARSET = utf8mb4 COLLATE utf8mb4_general_ci;
+
+ALTER TABLE `qr_menu`.`products` ADD CONSTRAINT `store_product_unique` UNIQUE KEY(store_id, product_id);

@@ -474,6 +474,14 @@ func Test(c *fiber.Ctx) error {
 		})
 	}
 
+	err = sapo.SyncCustomCollections(1, 250, store)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"error": false,
 		"msg":   info.CompletedAt,

@@ -10,6 +10,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/app/models"
+	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/repository"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils/sapo"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/platform/database"
@@ -35,7 +36,7 @@ func GetSapoAccessToken(c *fiber.Ctx) error {
 	}
 
 	var app models.App
-	tx := database.Database.First(&app, "gateway = ?", "sapo")
+	tx := database.Database.First(&app, "gateway = ?", repository.GATEWAY_SAPO)
 	if tx.Error != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": true,
