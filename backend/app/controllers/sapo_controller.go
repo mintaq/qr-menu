@@ -7,12 +7,16 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/hibiken/asynq"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/app/models"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/repository"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils/sapo"
+	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/worker"
+	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/worker/tasks"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/platform/database"
 )
 
@@ -149,5 +153,167 @@ func GetSapoAuthURL(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"error": false,
 		"msg":   url,
+	})
+}
+
+func SyncSapoProducts(c *fiber.Ctx) error {
+	_, err := utils.ExtractTokenMetadata(c)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	type SyncReq struct {
+		Store string `json:"store" validate:"required"`
+	}
+
+	store := new(SyncReq)
+
+	if err := c.BodyParser(store); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	validate := utils.NewValidator()
+	if err := validate.Struct(store); err != nil {
+		// Return, if some fields are not valid.
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   utils.ValidatorErrors(err),
+		})
+	}
+
+	task, err := tasks.NewSyncSapoProductsRecursiveTask(1, 1, store.Store)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	info, err := worker.AsynqClient.Enqueue(task, asynq.MaxRetry(3), asynq.Timeout(1*time.Minute))
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"error": false,
+		"msg":   "success",
+		"data":  info.CompletedAt,
+	})
+}
+
+func SyncSapoCustomCollections(c *fiber.Ctx) error {
+	_, err := utils.ExtractTokenMetadata(c)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	type SyncReq struct {
+		Store string `json:"store" validate:"required"`
+	}
+
+	store := new(SyncReq)
+
+	if err := c.BodyParser(store); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	validate := utils.NewValidator()
+	if err := validate.Struct(store); err != nil {
+		// Return, if some fields are not valid.
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   utils.ValidatorErrors(err),
+		})
+	}
+
+	task, err := tasks.NewSyncSapoCustomCollectionsRecursiveTask(1, 1, store.Store)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	info, err := worker.AsynqClient.Enqueue(task, asynq.MaxRetry(3), asynq.Timeout(1*time.Minute))
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"error": false,
+		"msg":   "success",
+		"data":  info.CompletedAt,
+	})
+}
+
+func SyncSapoSmartCollections(c *fiber.Ctx) error {
+	_, err := utils.ExtractTokenMetadata(c)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	type SyncReq struct {
+		Store string `json:"store" validate:"required"`
+	}
+
+	store := new(SyncReq)
+
+	if err := c.BodyParser(store); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	validate := utils.NewValidator()
+	if err := validate.Struct(store); err != nil {
+		// Return, if some fields are not valid.
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   utils.ValidatorErrors(err),
+		})
+	}
+
+	task, err := tasks.NewSyncSapoSmartCollectionsRecursiveTask(1, 1, store.Store)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	info, err := worker.AsynqClient.Enqueue(task, asynq.MaxRetry(3), asynq.Timeout(1*time.Minute))
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"error": false,
+		"msg":   "success",
+		"data":  info.CompletedAt,
 	})
 }

@@ -23,6 +23,7 @@ type SapoCollectionResp struct {
 }
 
 type ImageObject struct {
+	Id        uint64    `json:"id"`
 	Src       string    `json:"src"`
 	CreatedOn time.Time `json:"created_on"`
 }

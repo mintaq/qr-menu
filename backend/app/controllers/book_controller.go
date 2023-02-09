@@ -466,7 +466,7 @@ func Test(c *fiber.Ctx) error {
 		})
 	}
 
-	err = sapo.SyncProducts(1, 250, store)
+	_, err = sapo.SyncProducts(1, 250, store)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": true,
@@ -474,7 +474,7 @@ func Test(c *fiber.Ctx) error {
 		})
 	}
 
-	err = sapo.SyncCustomCollections(1, 250, store)
+	_, err = sapo.SyncCustomCollections(1, 250, store)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": true,

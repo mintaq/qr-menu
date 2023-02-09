@@ -3,6 +3,7 @@ package sapo
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/app/models"
@@ -12,22 +13,25 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func SyncProducts(page, limit int, store string) error {
+func SyncProducts(page, limit int, store string) (int, error) {
+	log.Println("SyncProducts: Processing...")
+
 	foundStore := new(models.Store)
 
 	if tx := database.Database.First(foundStore, "store = ?", store); tx.Error != nil {
-		return tx.Error
+		return 0, tx.Error
 	}
 
 	requestURI := fmt.Sprintf("https://%s/admin/products.json?page=%d&limit=%d", store, page, limit)
+	log.Println(requestURI)
 	req, err := http.NewRequest(http.MethodGet, requestURI, http.NoBody)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	req.Header.Set("X-Sapo-Access-Token", foundStore.AccessToken)
 	resp, err := utils.HttpClient.Do(req)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	defer resp.Body.Close()
 
@@ -40,13 +44,18 @@ func SyncProducts(page, limit int, store string) error {
 	if resp.StatusCode == http.StatusOK {
 		err := json.NewDecoder(resp.Body).Decode(respProducts)
 		if err != nil {
-			return err
+			return 0, err
 		}
 	}
 
 	products := []models.Product{}
+	countProduct := len(respProducts.Products)
 
-	for i := 0; i < len(respProducts.Products); i++ {
+	if countProduct == 0 {
+		return countProduct, nil
+	}
+
+	for i := 0; i < countProduct; i++ {
 		product := models.Product{}
 		product.StoreId = foundStore.ID
 		product.Gateway = repository.GATEWAY_SAPO
@@ -60,8 +69,8 @@ func SyncProducts(page, limit int, store string) error {
 		Columns:   []clause.Column{{Name: "store_id"}, {Name: "product_id"}},
 		DoUpdates: clause.AssignmentColumns([]string{"content", "summary", "alias", "images", "options", "product_type", "tags", "product_name", "modified_on", "variants", "vendor"}),
 	}).Create(&products).Error; err != nil {
-		return err
+		return 0, err
 	}
 
-	return nil
+	return countProduct, nil
 }
