@@ -30,8 +30,8 @@ func PrivateRoutes(a *fiber.App) {
 	// Routes for Sapo:
 	v1.Get("/sapo/get-auth-url", controllers.GetSapoAuthURL)
 	v1.Post("/sapo/products/sync", controllers.SyncSapoProducts)
-	v1.Post("/sapo/custom_collections/sync", controllers.SyncSapoCustomCollections)
-	v1.Post("/sapo/smart_collections/sync", controllers.SyncSapoSmartCollections)
+	v1.Post("/sapo/custom-collections/sync", controllers.SyncSapoCustomCollections)
+	v1.Post("/sapo/smart-collections/sync", controllers.SyncSapoSmartCollections)
 
 	// Routes for Store:
 	v1.Post("/store/create", controllers.CreateStore)
@@ -40,4 +40,7 @@ func PrivateRoutes(a *fiber.App) {
 	// Routes for Theme:
 	v1.Post("/theme/create", controllers.CreateTheme)
 	v1.Get("/themes", controllers.GetThemes)
+
+	// Routes for QR Code:
+	v1.Post("qr-code/create", controllers.CreateQrCode)
 }

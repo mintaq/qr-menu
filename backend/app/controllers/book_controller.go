@@ -458,9 +458,7 @@ func DeleteBook(c *fiber.Ctx) error {
 func Test(c *fiber.Ctx) error {
 	store := c.Query("store")
 
-	filePath := os.Getenv("STORAGE_ABSOLUTE_PATH") + "/app/" + store
-
-	err := os.MkdirAll(filePath, os.ModePerm)
+	dir, err := os.Getwd()
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": true,
@@ -468,7 +466,17 @@ func Test(c *fiber.Ctx) error {
 		})
 	}
 
-	file := filePath + "/qr.png"
+	filePath := dir + os.Getenv("STATIC_PUBLIC_PATH") + "/stores/" + store
+
+	err = os.MkdirAll(filePath, os.ModePerm)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	file := filePath + "/qr2.png"
 
 	err = qrcode.WriteColorFile("https://dingdoong.io", qrcode.Highest, 256, color.Transparent, color.White, file)
 	if err != nil {
@@ -480,6 +488,6 @@ func Test(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"error": false,
-		"msg":   file,
+		"msg":   dir,
 	})
 }
