@@ -1,0 +1,20 @@
+FROM golang:1.19.0
+
+LABEL maintainer="Le Bao Khang <lebaokhang@omegatheme.com> (https://xipat.com/)"
+
+# Move to working directory (/usr/src/app).
+WORKDIR /usr/src/app
+
+# Copy and download dependency using go mod.
+COPY go.mod go.sum ./
+RUN go mod download
+RUN go install github.com/cosmtrek/air@latest
+
+# Copy the code into the container.
+COPY . .
+
+# RUN go mod tidy
+
+# EXPOSE 5008
+
+# CMD ["air ./main.go -b 0.0.0.0"]

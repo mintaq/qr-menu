@@ -18,13 +18,25 @@ services:
       - 127.0.0.1:33066:3306
     networks:
       - backend
+  digital-menu-redis:
+    image: redis:alpine
+    restart: unless-stopped
+    volumes:
+      - redis:/data
+    ports:
+      - 6379:6379
+    networks:
+      - backend
 
   digital-menu-backend:
     build:
       context: ./backend
-      dockerfile: prod.Dockerfile
+      dockerfile: Dockerfile.development
     ports:
       - 127.0.0.1:5008:5008
+    volumes:
+      - ./backend:/usr/src/app
+    command: air ./main.go -b 0.0.0.0
     networks:
       - backend
     depends_on:
@@ -32,3 +44,4 @@ services:
 
 volumes:
   service-mariadb:
+  redis:

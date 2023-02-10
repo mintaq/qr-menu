@@ -41,7 +41,7 @@ func GetBooks(c *fiber.Ctx) error {
 		// Return, if books not found.
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": true,
-			"msg":   "books were not found",
+			"msg":   "books were not found 444",
 			"count": 0,
 			"books": nil,
 		})
