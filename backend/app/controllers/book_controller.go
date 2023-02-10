@@ -2,9 +2,7 @@ package controllers
 
 import (
 	"image/color"
-	"math/rand"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -470,7 +468,7 @@ func Test(c *fiber.Ctx) error {
 		})
 	}
 
-	file := filePath + "/" + strconv.Itoa(rand.Intn(100000)) + ".png"
+	file := filePath + "/qr.png"
 
 	err = qrcode.WriteColorFile("https://dingdoong.io", qrcode.Highest, 256, color.Transparent, color.White, file)
 	if err != nil {

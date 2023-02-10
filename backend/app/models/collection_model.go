@@ -9,9 +9,9 @@ import (
 type Collection struct {
 	BasicModel
 	SapoCollectionResp
-	CollectionId uint64 `json:"collection_id"`
-	StoreId      uint64 `json:"store_id"`
-	Gateway      string `json:"gateway"`
+	CollectionId   uint64 `json:"collection_id"`
+	UserAppTokenId uint64 `json:"user_app_token_id" validate:"required"`
+	Gateway        string `json:"gateway"`
 }
 
 type SapoCollectionResp struct {

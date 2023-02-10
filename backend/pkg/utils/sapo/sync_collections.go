@@ -13,21 +13,21 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func SyncCustomCollections(page, limit int, store string) (int, error) {
+func SyncCustomCollections(page, limit int, storeDomain string) (int, error) {
 	log.Println("SyncCustomCollections: Processing...")
-	foundStore := new(models.Store)
+	userAppToken := new(models.UserAppToken)
 
-	if tx := database.Database.First(foundStore, "store = ?", store); tx.Error != nil {
+	if tx := database.Database.First(userAppToken, "store_domain = ?", storeDomain); tx.Error != nil {
 		return 0, tx.Error
 	}
 
-	requestURI := fmt.Sprintf("https://%s/admin/custom_collections.json?page=%d&limit=%d", store, page, limit)
+	requestURI := fmt.Sprintf("https://%s/admin/custom_collections.json?page=%d&limit=%d", storeDomain, page, limit)
 	log.Println(requestURI)
 	req, err := http.NewRequest(http.MethodGet, requestURI, http.NoBody)
 	if err != nil {
 		return 0, err
 	}
-	req.Header.Set("X-Sapo-Access-Token", foundStore.AccessToken)
+	req.Header.Set("X-Sapo-Access-Token", userAppToken.AccessToken)
 	resp, err := utils.HttpClient.Do(req)
 	if err != nil {
 		return 0, err
@@ -56,7 +56,7 @@ func SyncCustomCollections(page, limit int, store string) (int, error) {
 
 	for i := 0; i < countCollection; i++ {
 		collection := models.Collection{}
-		collection.StoreId = foundStore.ID
+		collection.UserAppTokenId = userAppToken.ID
 		collection.Gateway = repository.GATEWAY_SAPO
 		collection.SapoCollectionResp = respCollections.CustomCollections[i]
 		collection.CollectionId = respCollections.CustomCollections[i].CollectionId
@@ -65,7 +65,7 @@ func SyncCustomCollections(page, limit int, store string) (int, error) {
 	}
 
 	if err := database.Database.Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "store_id"}, {Name: "collection_id"}},
+		Columns:   []clause.Column{{Name: "user_app_token_id"}, {Name: "collection_id"}},
 		DoUpdates: clause.AssignmentColumns([]string{"description", "alias", "name", "image"}),
 	}).Create(&collections).Error; err != nil {
 		return 0, err
@@ -74,22 +74,22 @@ func SyncCustomCollections(page, limit int, store string) (int, error) {
 	return countCollection, nil
 }
 
-func SyncSmartCollections(page, limit int, store string) (int, error) {
+func SyncSmartCollections(page, limit int, storeDomain string) (int, error) {
 	log.Println("SyncSmartCollections: Processing...")
 
-	foundStore := new(models.Store)
+	userAppToken := new(models.UserAppToken)
 
-	if tx := database.Database.First(foundStore, "store = ?", store); tx.Error != nil {
+	if tx := database.Database.First(userAppToken, "store = ?", storeDomain); tx.Error != nil {
 		return 0, tx.Error
 	}
 
-	requestURI := fmt.Sprintf("https://%s/admin/smart_collections.json?page=%d&limit=%d", store, page, limit)
+	requestURI := fmt.Sprintf("https://%s/admin/smart_collections.json?page=%d&limit=%d", storeDomain, page, limit)
 	log.Println(requestURI)
 	req, err := http.NewRequest(http.MethodGet, requestURI, http.NoBody)
 	if err != nil {
 		return 0, err
 	}
-	req.Header.Set("X-Sapo-Access-Token", foundStore.AccessToken)
+	req.Header.Set("X-Sapo-Access-Token", userAppToken.AccessToken)
 	resp, err := utils.HttpClient.Do(req)
 	if err != nil {
 		return 0, err
@@ -118,7 +118,7 @@ func SyncSmartCollections(page, limit int, store string) (int, error) {
 
 	for i := 0; i < countCollection; i++ {
 		collection := models.Collection{}
-		collection.StoreId = foundStore.ID
+		collection.UserAppTokenId = userAppToken.ID
 		collection.Gateway = repository.GATEWAY_SAPO
 		collection.SapoCollectionResp = respCollections.SmartCollections[i]
 		collection.CollectionId = respCollections.SmartCollections[i].CollectionId
@@ -127,7 +127,7 @@ func SyncSmartCollections(page, limit int, store string) (int, error) {
 	}
 
 	if err := database.Database.Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "store_id"}, {Name: "collection_id"}},
+		Columns:   []clause.Column{{Name: "user_app_token_id"}, {Name: "collection_id"}},
 		DoUpdates: clause.AssignmentColumns([]string{"description", "alias", "name", "image"}),
 	}).Create(&collections).Error; err != nil {
 		return 0, err

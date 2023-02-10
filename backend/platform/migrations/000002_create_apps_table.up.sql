@@ -5,7 +5,7 @@ CREATE TABLE `qr_menu`.`apps` (
     `secret_key` MEDIUMTEXT NOT NULL,
     `scopes` MEDIUMTEXT NULL,
     `redirect_url` VARCHAR(255) NULL,
-    `gateway` ENUM('sapo', 'kiotviet') NULL,
+    `gateway` VARCHAR(255) NULL,
     `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP on update CURRENT_TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),

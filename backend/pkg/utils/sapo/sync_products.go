@@ -13,22 +13,22 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func SyncProducts(page, limit int, store string) (int, error) {
+func SyncProducts(page, limit int, storeDomain string) (int, error) {
 	log.Println("SyncProducts: Processing...")
 
-	foundStore := new(models.Store)
+	userAppToken := new(models.UserAppToken)
 
-	if tx := database.Database.First(foundStore, "store = ?", store); tx.Error != nil {
+	if tx := database.Database.First(userAppToken, "store_domain = ?", storeDomain); tx.Error != nil {
 		return 0, tx.Error
 	}
 
-	requestURI := fmt.Sprintf("https://%s/admin/products.json?page=%d&limit=%d", store, page, limit)
+	requestURI := fmt.Sprintf("https://%s/admin/products.json?page=%d&limit=%d", storeDomain, page, limit)
 	log.Println(requestURI)
 	req, err := http.NewRequest(http.MethodGet, requestURI, http.NoBody)
 	if err != nil {
 		return 0, err
 	}
-	req.Header.Set("X-Sapo-Access-Token", foundStore.AccessToken)
+	req.Header.Set("X-Sapo-Access-Token", userAppToken.AccessToken)
 	resp, err := utils.HttpClient.Do(req)
 	if err != nil {
 		return 0, err
@@ -57,7 +57,7 @@ func SyncProducts(page, limit int, store string) (int, error) {
 
 	for i := 0; i < countProduct; i++ {
 		product := models.Product{}
-		product.StoreId = foundStore.ID
+		product.UserAppTokenId = userAppToken.ID
 		product.Gateway = repository.GATEWAY_SAPO
 		product.SapoProductResp = respProducts.Products[i]
 		product.ProductId = respProducts.Products[i].ProductId
@@ -66,7 +66,7 @@ func SyncProducts(page, limit int, store string) (int, error) {
 	}
 
 	if err := database.Database.Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "store_id"}, {Name: "product_id"}},
+		Columns:   []clause.Column{{Name: "user_app_token_id"}, {Name: "product_id"}},
 		DoUpdates: clause.AssignmentColumns([]string{"content", "summary", "alias", "images", "options", "product_type", "tags", "product_name", "modified_on", "variants", "vendor"}),
 	}).Create(&products).Error; err != nil {
 		return 0, err

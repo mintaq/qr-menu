@@ -1,6 +1,6 @@
 module gitlab.xipat.com/omega-team3/qr-menu-backend
 
-go 1.19
+go 1.20
 
 require (
 	github.com/arsmn/fiber-swagger/v2 v2.31.1

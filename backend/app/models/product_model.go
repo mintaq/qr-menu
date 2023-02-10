@@ -27,11 +27,12 @@ type SapoProductResp struct {
 type Product struct {
 	BasicModel
 	SapoProductResp
-	ProductId uint64    `json:"product_id"`
-	StoreId   uint64    `json:"store_id" validate:"required"`
-	Gateway   string    `json:"gateway" validate:"required"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ProductId      uint64    `json:"product_id"`
+	Price          float32   `json:"price"`
+	UserAppTokenId uint64    `json:"user_app_token_id" validate:"required"`
+	Gateway        string    `json:"gateway" validate:"required"`
+	CreatedAt      time.Time `json:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at"`
 }
 
 type VariantArray []Variant
