@@ -1,26 +1,28 @@
 package models
 
 import (
+	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
+	"strings"
 	"time"
 )
 
 type SapoProductResp struct {
-	Content     string       `json:"content"`
-	Summary     string       `json:"summary"`
-	CreatedOn   time.Time    `json:"created_on"`
-	Alias       string       `json:"alias"`
-	ProductId   uint64       `json:"id"`
-	Images      ImageArray   `json:"images"`
-	Options     OptionArray  `json:"options"`
-	ProductType string       `json:"product_type" validate:"required"`
-	PublishedOn time.Time    `json:"published_on"`
-	Tags        string       `json:"tags"`
-	ProductName string       `json:"name" gorm:"column:product_name" validate:"required"`
-	ModifiedOn  time.Time    `json:"modified_on"`
-	Variants    VariantArray `json:"variants"`
-	Vendor      string       `json:"vendor"`
+	Content     string         `json:"content" validate:"required"`
+	Summary     sql.NullString `json:"summary"`
+	CreatedOn   sql.NullTime   `json:"created_on"`
+	Alias       string         `json:"alias"`
+	ProductId   uint64         `json:"id"`
+	Images      ImageArray     `json:"images"`
+	Options     OptionArray    `json:"options"`
+	ProductType string         `json:"product_type" validate:"required"`
+	PublishedOn sql.NullTime   `json:"published_on"`
+	Tags        sql.NullString `json:"tags"`
+	ProductName string         `json:"name" gorm:"column:product_name" validate:"required"`
+	ModifiedOn  sql.NullTime   `json:"modified_on"`
+	Variants    VariantArray   `json:"variants"`
+	Vendor      sql.NullString `json:"vendor"`
 }
 
 // User struct to describe Product object.
@@ -28,11 +30,33 @@ type Product struct {
 	BasicModel
 	SapoProductResp
 	ProductId      uint64    `json:"product_id"`
-	Price          float32   `json:"price"`
-	UserAppTokenId uint64    `json:"user_app_token_id" validate:"required"`
+	Price          float32   `json:"price" validate:"required" gorm:"default:null"`
+	StoreId        uint64    `json:"store_id" validate:"required"`
+	UserAppTokenId uint64    `json:"user_app_token_id" gorm:"default:null"`
+	IsChargeTax    int       `json:"is_charge_tax" validate:"eq=0|eq=1"`
+	ProductStatus  string    `json:"product_status"`
 	Gateway        string    `json:"gateway" validate:"required"`
 	CreatedAt      time.Time `json:"created_at"`
 	UpdatedAt      time.Time `json:"updated_at"`
+}
+
+type CreateProductBody struct {
+	Product
+	CollectionId uint64 `json:"collection_id" validate:"required"`
+}
+
+type ProductDBForm interface {
+	GetProduct() *Product
+	GenProductNameAlias() string
+}
+
+func (p CreateProductBody) GetProduct() *Product {
+	return &p.Product
+}
+
+func (p CreateProductBody) GenProductNameAlias() string {
+	lowerCaseName := (strings.ToLower((strings.Trim(p.ProductName, " "))))
+	return strings.ReplaceAll(lowerCaseName, " ", "_")
 }
 
 type VariantArray []Variant

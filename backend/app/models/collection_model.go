@@ -10,7 +10,8 @@ type Collection struct {
 	BasicModel
 	SapoCollectionResp
 	CollectionId   uint64 `json:"collection_id"`
-	UserAppTokenId uint64 `json:"user_app_token_id" validate:"required"`
+	StoreId        uint64 `json:"store_id" validate:"required"`
+	UserAppTokenId uint64 `json:"user_app_token_id" gorm:"default:null"`
 	Gateway        string `json:"gateway"`
 }
 

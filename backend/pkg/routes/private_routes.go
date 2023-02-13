@@ -46,4 +46,7 @@ func PrivateRoutes(a *fiber.App) {
 
 	// Routes for App:
 	v1.Post("/app/create", controllers.CreateApp)
+
+	// Routes for Product:
+	v1.Post("/product/create", controllers.CreateProduct)
 }
