@@ -134,7 +134,7 @@ func GetSapoAuthURL(c *fiber.Ctx) error {
 		})
 	}
 
-	match, _ := regexp.MatchString(`([\S]+).mysapo.net$`, store)
+	match, _ := regexp.MatchString(repository.REGEX_SAPO_DOMAIN, store)
 	if !match {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": true,

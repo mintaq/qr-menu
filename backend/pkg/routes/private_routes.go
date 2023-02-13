@@ -43,4 +43,7 @@ func PrivateRoutes(a *fiber.App) {
 
 	// Routes for QR Code:
 	v1.Post("qr-code/create", controllers.CreateQrCode)
+
+	// Routes for App:
+	v1.Post("/app/create", controllers.CreateApp)
 }

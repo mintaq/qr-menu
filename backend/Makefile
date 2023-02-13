@@ -27,6 +27,9 @@ build: test
 run: swag build
 	$(BUILD_DIR)/$(APP_NAME)
 
+run.dev: 
+	fiber dev main.go
+
 migrate.up:
 	migrate -path $(MIGRATIONS_FOLDER) -database "$(DATABASE_URL)" up
 

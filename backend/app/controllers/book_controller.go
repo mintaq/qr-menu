@@ -478,7 +478,7 @@ func Test(c *fiber.Ctx) error {
 
 	file := filePath + "/qr2.png"
 
-	err = qrcode.WriteColorFile("https://dingdoong.io", qrcode.Highest, 256, color.Transparent, color.White, file)
+	err = qrcode.WriteColorFile("https://dingdoong.io", qrcode.Highest, 256, color.Black, color.White, file)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": true,

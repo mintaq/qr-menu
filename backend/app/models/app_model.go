@@ -8,5 +8,5 @@ type App struct {
 	SecretKey   string `json:"secret_key" validate:"required"`
 	Scopes      string `json:"scopes"`
 	RedirectUrl string `json:"redirect_url"`
-	Gateway     string `json:"gateway"`
+	Gateway     string `json:"gateway" validate:"required"`
 }
