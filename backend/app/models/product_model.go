@@ -1,7 +1,6 @@
 package models
 
 import (
-	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
 	"strings"
@@ -9,20 +8,20 @@ import (
 )
 
 type SapoProductResp struct {
-	Content     string         `json:"content" validate:"required"`
-	Summary     sql.NullString `json:"summary"`
-	CreatedOn   sql.NullTime   `json:"created_on"`
-	Alias       string         `json:"alias"`
-	ProductId   uint64         `json:"id"`
-	Images      ImageArray     `json:"images"`
-	Options     OptionArray    `json:"options"`
-	ProductType string         `json:"product_type" validate:"required"`
-	PublishedOn sql.NullTime   `json:"published_on"`
-	Tags        sql.NullString `json:"tags"`
-	ProductName string         `json:"name" gorm:"column:product_name" validate:"required"`
-	ModifiedOn  sql.NullTime   `json:"modified_on"`
-	Variants    VariantArray   `json:"variants"`
-	Vendor      sql.NullString `json:"vendor"`
+	Content     string       `json:"content" validate:"required"`
+	Summary     string       `json:"summary" gorm:"default:null"`
+	CreatedOn   time.Time    `json:"created_on" gorm:"default:null"`
+	Alias       string       `json:"alias"`
+	ProductId   uint64       `json:"id"`
+	Images      ImageArray   `json:"images"`
+	Options     OptionArray  `json:"options"`
+	ProductType string       `json:"product_type" validate:"required"`
+	PublishedOn time.Time    `json:"published_on" gorm:"default:null"`
+	Tags        string       `json:"tags" gorm:"default:null"`
+	ProductName string       `json:"name" gorm:"column:product_name" validate:"required"`
+	ModifiedOn  time.Time    `json:"modified_on" gorm:"default:null"`
+	Variants    VariantArray `json:"variants"`
+	Vendor      string       `json:"vendor" gorm:"default:null"`
 }
 
 // User struct to describe Product object.
