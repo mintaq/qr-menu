@@ -1,12 +1,10 @@
-CREATE TABLE `qr_menu`.`sites` (
+CREATE TABLE `qr_menu`.`themes` (
     `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    `user_id` BIGINT UNSIGNED NOT NULL,
-    `name` VARCHAR(255) NOT NULL,
-    `subdomain` VARCHAR(255) NOT NULL,
+    `store_id` BIGINT UNSIGNED NOT NULL,
+    `cover_image` TEXT NULL DEFAULT NULL,
+    `colors` JSON NULL DEFAULT NULL,
     `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP on update CURRENT_TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
-    INDEX (`user_id`),
-    INDEX (`name`),
-    UNIQUE (`subdomain`)
+    INDEX (`store_id`)
 ) ENGINE = InnoDB CHARSET = utf8mb4 COLLATE utf8mb4_general_ci;

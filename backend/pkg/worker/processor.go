@@ -33,6 +33,9 @@ func StartRedisServer() {
 	mux := asynq.NewServeMux()
 	mux.HandleFunc(tasks.TypeEmailDelivery, tasks.HandleEmailDeliveryTask)
 	mux.Handle(tasks.TypeImageResize, tasks.NewImageProcessor())
+	mux.HandleFunc(tasks.TypeSyncSapoProducts, tasks.HandleSyncSapoProductsRecursiveTask)
+	mux.HandleFunc(tasks.TypeSyncSapoCustomCollections, tasks.HandleSyncSapoCustomCollectionsRecursiveTask)
+	mux.HandleFunc(tasks.TypeSyncSapoSmartCollections, tasks.HandleSyncSapoSmartCollectionsRecursiveTask)
 	// ...register other handlers...
 
 	if err := srv.Run(mux); err != nil {

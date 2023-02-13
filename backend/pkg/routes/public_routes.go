@@ -1,12 +1,17 @@
 package routes
 
 import (
+	"os"
+
 	"github.com/gofiber/fiber/v2"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/app/controllers"
 )
 
 // PublicRoutes func for describe group of public routes.
 func PublicRoutes(a *fiber.App) {
+	// Static routes
+	a.Static(os.Getenv("STATIC_PUBLIC_PATH"), "./static/public")
+
 	// Create routes group.
 	api := a.Group("/api")
 	v1 := api.Group("/v1")
@@ -23,4 +28,5 @@ func PublicRoutes(a *fiber.App) {
 	v1.Post("/user/reset-password", controllers.ResetPassword)
 	v1.Get("/sapo/get-token", controllers.GetSapoAccessToken)
 	v1.Get("/test", controllers.Test)
+
 }

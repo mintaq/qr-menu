@@ -1,6 +1,6 @@
 module gitlab.xipat.com/omega-team3/qr-menu-backend
 
-go 1.19
+go 1.20
 
 require (
 	github.com/arsmn/fiber-swagger/v2 v2.31.1
@@ -16,6 +16,7 @@ require (
 	github.com/joho/godotenv v1.4.0
 	github.com/redis/go-redis/extra/redisotel/v9 v9.0.2
 	github.com/redis/go-redis/v9 v9.0.2
+	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/stretchr/testify v1.8.1
 	github.com/swaggo/swag v1.8.10
 	golang.org/x/crypto v0.4.0

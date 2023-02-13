@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS `qr_menu`.`qr_codes`;

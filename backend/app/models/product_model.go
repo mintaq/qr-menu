@@ -11,7 +11,7 @@ type SapoProductResp struct {
 	Summary     string       `json:"summary"`
 	CreatedOn   time.Time    `json:"created_on"`
 	Alias       string       `json:"alias"`
-	ProductId   uint64       `json:"id" gorm:"column:product_id" validate:"required"`
+	ProductId   uint64       `json:"id"`
 	Images      ImageArray   `json:"images"`
 	Options     OptionArray  `json:"options"`
 	ProductType string       `json:"product_type" validate:"required"`
@@ -27,10 +27,12 @@ type SapoProductResp struct {
 type Product struct {
 	BasicModel
 	SapoProductResp
-	StoreId   uint64    `json:"store_id" validate:"required"`
-	Gateway   string    `json:"gateway" validate:"required"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ProductId      uint64    `json:"product_id"`
+	Price          float32   `json:"price"`
+	UserAppTokenId uint64    `json:"user_app_token_id" validate:"required"`
+	Gateway        string    `json:"gateway" validate:"required"`
+	CreatedAt      time.Time `json:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at"`
 }
 
 type VariantArray []Variant
@@ -64,24 +66,6 @@ func (sla *OptionArray) Scan(src interface{}) error {
 func (sla OptionArray) Value() (driver.Value, error) {
 	val, err := json.Marshal(sla)
 	return string(val), err
-}
-
-type ProductResp struct {
-	Content     string    `json:"content"`
-	Summary     string    `json:"summary"`
-	CreatedOn   time.Time `json:"created_on"`
-	Alias       string    `json:"alias"`
-	ProductId   uint64    `json:"product_id" validate:"required"`
-	Images      string    `json:"images"`
-	Options     string    `json:"options"`
-	ProductType string    `json:"product_type" validate:"required"`
-	PublishedOn time.Time `json:"published_on"`
-	Tags        string    `json:"tags"`
-	ProductName string    `json:"product_name" validate:"required"`
-	ModifiedOn  time.Time `json:"modified_on"`
-	Variants    string    `json:"variants"`
-	Vendor      string    `json:"vendor"`
-	Gateway     string    `json:"gateway" validate:"required"`
 }
 
 type Variant struct {
