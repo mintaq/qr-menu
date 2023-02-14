@@ -78,4 +78,30 @@ func CreateMenu(c *fiber.Ctx) error {
 	})
 }
 
+func ListMenus(c *fiber.Ctx) error {
+	_, err := utils.ExtractTokenMetadata(c)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
 
+	menu := new(models.Menu)
+	pagination := models.Pagination{
+		Limit: 5,
+		Page:  1,
+	}
+	res, err := menu.List(pagination)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"error": false,
+		"msg":   "",
+		"data":  res,
+	})
+}

@@ -52,4 +52,5 @@ func PrivateRoutes(a *fiber.App) {
 
 	// Routes for Menu:
 	v1.Post("/menu/create", controllers.CreateMenu)
+	v1.Get("/menus",controllers.ListMenus)
 }
