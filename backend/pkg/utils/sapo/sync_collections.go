@@ -13,15 +13,15 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func SyncCustomCollections(page, limit int, storeDomain string) (int, error) {
+func SyncCustomCollections(page, limit int, sapoDomain string, storeId uint64) (int, error) {
 	log.Println("SyncCustomCollections: Processing...")
 	userAppToken := new(models.UserAppToken)
 
-	if tx := database.Database.First(userAppToken, "store_domain = ?", storeDomain); tx.Error != nil {
+	if tx := database.Database.First(userAppToken, "store_domain = ?", sapoDomain); tx.Error != nil {
 		return 0, tx.Error
 	}
 
-	requestURI := fmt.Sprintf("https://%s/admin/custom_collections.json?page=%d&limit=%d", storeDomain, page, limit)
+	requestURI := fmt.Sprintf("https://%s/admin/custom_collections.json?page=%d&limit=%d", sapoDomain, page, limit)
 	log.Println(requestURI)
 	req, err := http.NewRequest(http.MethodGet, requestURI, http.NoBody)
 	if err != nil {
@@ -60,12 +60,13 @@ func SyncCustomCollections(page, limit int, storeDomain string) (int, error) {
 		collection.Gateway = repository.GATEWAY_SAPO
 		collection.SapoCollectionResp = respCollections.CustomCollections[i]
 		collection.CollectionId = respCollections.CustomCollections[i].CollectionId
+		collection.StoreId = storeId
 
 		collections = append(collections, collection)
 	}
 
 	if err := database.Database.Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "user_app_token_id"}, {Name: "collection_id"}},
+		Columns:   []clause.Column{{Name: "store_id"}, {Name: "collection_id"}},
 		DoUpdates: clause.AssignmentColumns([]string{"description", "alias", "name", "image"}),
 	}).Create(&collections).Error; err != nil {
 		return 0, err
@@ -74,16 +75,16 @@ func SyncCustomCollections(page, limit int, storeDomain string) (int, error) {
 	return countCollection, nil
 }
 
-func SyncSmartCollections(page, limit int, storeDomain string) (int, error) {
+func SyncSmartCollections(page, limit int, sapoDomain string, storeId uint64) (int, error) {
 	log.Println("SyncSmartCollections: Processing...")
 
 	userAppToken := new(models.UserAppToken)
 
-	if tx := database.Database.First(userAppToken, "store = ?", storeDomain); tx.Error != nil {
+	if tx := database.Database.First(userAppToken, "store = ?", sapoDomain); tx.Error != nil {
 		return 0, tx.Error
 	}
 
-	requestURI := fmt.Sprintf("https://%s/admin/smart_collections.json?page=%d&limit=%d", storeDomain, page, limit)
+	requestURI := fmt.Sprintf("https://%s/admin/smart_collections.json?page=%d&limit=%d", sapoDomain, page, limit)
 	log.Println(requestURI)
 	req, err := http.NewRequest(http.MethodGet, requestURI, http.NoBody)
 	if err != nil {
@@ -122,12 +123,13 @@ func SyncSmartCollections(page, limit int, storeDomain string) (int, error) {
 		collection.Gateway = repository.GATEWAY_SAPO
 		collection.SapoCollectionResp = respCollections.SmartCollections[i]
 		collection.CollectionId = respCollections.SmartCollections[i].CollectionId
+		collection.StoreId = storeId
 
 		collections = append(collections, collection)
 	}
 
 	if err := database.Database.Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "user_app_token_id"}, {Name: "collection_id"}},
+		Columns:   []clause.Column{{Name: "store_id"}, {Name: "collection_id"}},
 		DoUpdates: clause.AssignmentColumns([]string{"description", "alias", "name", "image"}),
 	}).Create(&collections).Error; err != nil {
 		return 0, err

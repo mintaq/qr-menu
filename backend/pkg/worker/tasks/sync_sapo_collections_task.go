@@ -14,13 +14,14 @@ const (
 )
 
 type SyncSapoCollectionsPayload struct {
-	Page  int
-	Limit int
-	Store string
+	Page       int
+	Limit      int
+	SapoDomain string
+	StoreId    uint64
 }
 
-func NewSyncSapoCustomCollectionsRecursiveTask(page, limit int, store string) (*asynq.Task, error) {
-	payload, err := json.Marshal(SyncSapoCollectionsPayload{Page: page, Limit: limit, Store: store})
+func NewSyncSapoCustomCollectionsRecursiveTask(page, limit int, sapoDomain string, storeId uint64) (*asynq.Task, error) {
+	payload, err := json.Marshal(SyncSapoCollectionsPayload{Page: page, Limit: limit, SapoDomain: sapoDomain, StoreId: storeId})
 	if err != nil {
 		return nil, err
 	}
@@ -34,13 +35,13 @@ func HandleSyncSapoCustomCollectionsRecursiveTask(ctx context.Context, t *asynq.
 		return err
 	}
 
-	count, err := sapo.SyncCustomCollections(p.Page, p.Limit, p.Store)
+	count, err := sapo.SyncCustomCollections(p.Page, p.Limit, p.SapoDomain, p.StoreId)
 	if err != nil {
 		return err
 	}
 
 	if count > 0 {
-		payload, err := json.Marshal(SyncSapoCollectionsPayload{Page: p.Page + 1, Limit: p.Limit, Store: p.Store})
+		payload, err := json.Marshal(SyncSapoCollectionsPayload{Page: p.Page + 1, Limit: p.Limit, SapoDomain: p.SapoDomain, StoreId: p.StoreId})
 		if err != nil {
 			return err
 		}
@@ -50,8 +51,8 @@ func HandleSyncSapoCustomCollectionsRecursiveTask(ctx context.Context, t *asynq.
 	return nil
 }
 
-func NewSyncSapoSmartCollectionsRecursiveTask(page, limit int, store string) (*asynq.Task, error) {
-	payload, err := json.Marshal(SyncSapoCollectionsPayload{Page: page, Limit: limit, Store: store})
+func NewSyncSapoSmartCollectionsRecursiveTask(page, limit int, sapoDomain string, storeId uint64) (*asynq.Task, error) {
+	payload, err := json.Marshal(SyncSapoCollectionsPayload{Page: page, Limit: limit, SapoDomain: sapoDomain, StoreId: storeId})
 	if err != nil {
 		return nil, err
 	}
@@ -65,13 +66,13 @@ func HandleSyncSapoSmartCollectionsRecursiveTask(ctx context.Context, t *asynq.T
 		return err
 	}
 
-	count, err := sapo.SyncSmartCollections(p.Page, p.Limit, p.Store)
+	count, err := sapo.SyncSmartCollections(p.Page, p.Limit, p.SapoDomain, p.StoreId)
 	if err != nil {
 		return err
 	}
 
 	if count > 0 {
-		payload, err := json.Marshal(SyncSapoCollectionsPayload{Page: p.Page + 1, Limit: p.Limit, Store: p.Store})
+		payload, err := json.Marshal(SyncSapoCollectionsPayload{Page: p.Page + 1, Limit: p.Limit, SapoDomain: p.SapoDomain, StoreId: p.StoreId})
 		if err != nil {
 			return err
 		}

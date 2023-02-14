@@ -1,8 +1,9 @@
-CREATE TABLE `qr_menu`.`qr_codes` (
+CREATE TABLE `qr_menu`.`menus` (
     `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `store_id` BIGINT UNSIGNED NOT NULL,
-    `name` VARCHAR(255) NOT NULL,
-    `image` TEXT NOT NULL,
+    `name` VARCHAR(255) NULL,
+    `qr_code_src` TEXT NULL,
+    `url` TEXT NULL,
     `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP on update CURRENT_TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
