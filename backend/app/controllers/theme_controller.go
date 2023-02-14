@@ -1,14 +1,22 @@
 package controllers
 
 import (
+	"encoding/json"
+	"fmt"
+	"log"
+	"os"
+	"strconv"
+	"strings"
+
 	"github.com/gofiber/fiber/v2"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/app/models"
+	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/repository"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/platform/database"
 )
 
 func CreateTheme(c *fiber.Ctx) error {
-	_, err := utils.ExtractTokenMetadata(c)
+	claims, err := utils.ExtractTokenMetadata(c)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": true,
@@ -18,17 +26,46 @@ func CreateTheme(c *fiber.Ctx) error {
 
 	theme := new(models.Theme)
 
-	if err := c.BodyParser(theme); err != nil {
+	form, err := c.MultipartForm()
+	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": true,
 			"msg":   err.Error(),
 		})
 	}
 
+	// => *multipart.Form
+	if storeId := form.Value["store_id"]; len(storeId) > 0 {
+		// Get key value:
+		storeIdUint64, _ := strconv.Atoi(storeId[0])
+		theme.StoreId = uint64(storeIdUint64)
+	}
+
+	if colors := form.Value["colors"]; len(colors) > 0 {
+		// Get key value:
+		themeColors := new(models.ThemeColors)
+		if err := json.Unmarshal([]byte(colors[0]), themeColors); err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": true,
+				"msg":   err.Error(),
+			})
+		}
+		theme.Colors = *themeColors
+	}
+
 	if err := utils.NewValidator().Struct(theme); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": true,
 			"msg":   utils.ValidatorErrors(err),
+		})
+	}
+
+	store := new(models.Store)
+
+	if tx := database.Database.Where("id = ? AND user_id = ?", theme.StoreId, claims.UserID).First(store); tx.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   tx.Error.Error(),
 		})
 	}
 
@@ -37,6 +74,58 @@ func CreateTheme(c *fiber.Ctx) error {
 			"error": true,
 			"msg":   tx.Error.Error(),
 		})
+	}
+
+	dir, err := utils.GetStaticPublicPathByStore(store.Subdomain)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	// Get all files from "file" key:
+	files := form.File["file"]
+	// => []*multipart.FileHeader
+
+	hostURL, _ := utils.ConnectionURLBuilder(repository.STATIC_PUBLIC_URL)
+
+	log.Println(hostURL)
+
+	// Loop through files:
+	for _, file := range files {
+		log.Println(file.Filename, file.Size, file.Header["Content-Type"][0])
+
+		if !strings.Contains(file.Header["Content-Type"][0], "image/") {
+			log.Println("test")
+			continue
+		}
+
+		contentType := strings.Split(file.Header["Content-Type"][0], "/")
+		imageType := contentType[1]
+		// => "tutorial.pdf" 360641 "application/pdf"
+
+		fileName := fmt.Sprintf("%s%d.%s", os.Getenv("THEME_COVER_IMAGE_PREFIX"), theme.ID, imageType)
+		filePath := fmt.Sprintf("%s/%s", dir, fileName)
+		filePathSrc := fmt.Sprintf("%s/stores/%s/%s", hostURL, store.Subdomain, fileName)
+
+		log.Println(filePath)
+		log.Println(filePathSrc)
+
+		// Save the files to disk:
+		if err := c.SaveFile(file, filePath); err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": true,
+				"msg":   err.Error(),
+			})
+		}
+
+		if tx := database.Database.Model(theme).Where("id = ?", theme.ID).Update("cover_image", filePathSrc); tx.Error != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": true,
+				"msg":   tx.Error.Error(),
+			})
+		}
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{

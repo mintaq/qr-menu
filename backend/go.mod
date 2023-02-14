@@ -6,7 +6,7 @@ require (
 	github.com/arsmn/fiber-swagger/v2 v2.31.1
 	github.com/go-playground/validator/v10 v10.11.1
 	github.com/go-sql-driver/mysql v1.7.0
-	github.com/gofiber/fiber/v2 v2.41.0
+	github.com/gofiber/fiber/v2 v2.42.0
 	github.com/gofiber/jwt/v2 v2.2.7
 	github.com/golang-jwt/jwt/v4 v4.4.3
 	github.com/google/uuid v1.3.0
@@ -33,10 +33,14 @@ require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/lib/pq v1.10.5 // indirect
 	github.com/mattn/go-sqlite3 v1.14.10 // indirect
+	github.com/philhofer/fwd v1.1.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/redis/go-redis/extra/rediscmd/v9 v9.0.2 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
+	github.com/savsgio/dictpool v0.0.0-20221023140959-7bf2e61cea94 // indirect
+	github.com/savsgio/gotils v0.0.0-20220530130905-52f3993e8d6d // indirect
 	github.com/spf13/cast v1.5.0 // indirect
+	github.com/tinylib/msgp v1.1.6 // indirect
 	go.opentelemetry.io/otel v1.12.0 // indirect
 	go.opentelemetry.io/otel/metric v0.35.0 // indirect
 	go.opentelemetry.io/otel/trace v1.12.0 // indirect
@@ -79,7 +83,7 @@ require (
 	github.com/rivo/uniseg v0.4.3 // indirect
 	github.com/swaggo/files v1.0.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/valyala/fasthttp v1.43.0 // indirect
+	github.com/valyala/fasthttp v1.44.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	golang.org/x/net v0.5.0 // indirect
 	golang.org/x/oauth2 v0.4.0

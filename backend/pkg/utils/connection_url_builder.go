@@ -3,6 +3,8 @@ package utils
 import (
 	"fmt"
 	"os"
+
+	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/repository"
 )
 
 // ConnectionURLBuilder func for building URL connection.
@@ -46,6 +48,13 @@ func ConnectionURLBuilder(n string) (string, error) {
 			"%s:%s",
 			os.Getenv("SERVER_HOST"),
 			os.Getenv("SERVER_PORT"),
+		)
+	case repository.STATIC_PUBLIC_URL:
+		url = fmt.Sprintf(
+			"%s:%s%s",
+			os.Getenv("SERVER_HOST"),
+			os.Getenv("SERVER_PORT"),
+			os.Getenv("STATIC_PUBLIC_PATH"),
 		)
 	default:
 		// Return error message.

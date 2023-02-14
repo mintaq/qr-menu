@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/monitor"
 )
 
 // FiberMiddleware provide Fiber's built-in middlewares.
@@ -15,4 +16,5 @@ func FiberMiddleware(a *fiber.App) {
 		// Add simple logger.
 		logger.New(),
 	)
+	a.Get("/metrics", monitor.New(monitor.ConfigDefault))
 }
