@@ -58,3 +58,19 @@ func CreateKiotvietUser(c *fiber.Ctx) error {
 		"data":  newApp,
 	})
 }
+
+func SyncKiotvietProducts(c *fiber.Ctx) error {
+	_, err := utils.ExtractTokenMetadata(c)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"error": false,
+		"msg":   "success",
+		"data":  "122",
+	})
+}
