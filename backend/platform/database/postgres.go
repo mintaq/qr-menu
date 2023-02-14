@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/repository"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils"
 
 	"github.com/jmoiron/sqlx"
@@ -21,7 +22,7 @@ func PostgreSQLConnection() (*sqlx.DB, error) {
 	maxLifetimeConn, _ := strconv.Atoi(os.Getenv("DB_MAX_LIFETIME_CONNECTIONS"))
 
 	// Build PostgreSQL connection URL.
-	postgresConnURL, err := utils.ConnectionURLBuilder("postgres")
+	postgresConnURL, err := utils.ConnectionURLBuilder(repository.POSTGRES_URL)
 	if err != nil {
 		return nil, err
 	}

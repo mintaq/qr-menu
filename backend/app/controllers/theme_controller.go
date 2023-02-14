@@ -76,7 +76,8 @@ func CreateTheme(c *fiber.Ctx) error {
 		})
 	}
 
-	dir, err := utils.GetStaticPublicPathByStore(store.Subdomain)
+	hostURL, _ := utils.ConnectionURLBuilder(repository.STATIC_PUBLIC_URL)
+	staticPublicPath, err := utils.GetStaticPublicPathByStore(store.Subdomain)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": true,
@@ -86,16 +87,9 @@ func CreateTheme(c *fiber.Ctx) error {
 
 	// Get all files from "file" key:
 	files := form.File["file"]
-	// => []*multipart.FileHeader
-
-	hostURL, _ := utils.ConnectionURLBuilder(repository.STATIC_PUBLIC_URL)
-
-	log.Println(hostURL)
 
 	// Loop through files:
 	for _, file := range files {
-		log.Println(file.Filename, file.Size, file.Header["Content-Type"][0])
-
 		if !strings.Contains(file.Header["Content-Type"][0], "image/") {
 			log.Println("test")
 			continue
@@ -103,14 +97,9 @@ func CreateTheme(c *fiber.Ctx) error {
 
 		contentType := strings.Split(file.Header["Content-Type"][0], "/")
 		imageType := contentType[1]
-		// => "tutorial.pdf" 360641 "application/pdf"
-
 		fileName := fmt.Sprintf("%s%d.%s", os.Getenv("THEME_COVER_IMAGE_PREFIX"), theme.ID, imageType)
-		filePath := fmt.Sprintf("%s/%s", dir, fileName)
+		filePath := fmt.Sprintf("%s/%s", staticPublicPath, fileName)
 		filePathSrc := fmt.Sprintf("%s/stores/%s/%s", hostURL, store.Subdomain, fileName)
-
-		log.Println(filePath)
-		log.Println(filePathSrc)
 
 		// Save the files to disk:
 		if err := c.SaveFile(file, filePath); err != nil {
