@@ -49,11 +49,11 @@ type ProductDBForm interface {
 	GenProductNameAlias() string
 }
 
-func (p CreateProductBody) GetProduct() *Product {
+func (p *CreateProductBody) GetProduct() *Product {
 	return &p.Product
 }
 
-func (p CreateProductBody) GenProductNameAlias() string {
+func (p *CreateProductBody) GenProductNameAlias() string {
 	lowerCaseName := (strings.ToLower((strings.Trim(p.ProductName, " "))))
 	return strings.ReplaceAll(lowerCaseName, " ", "_")
 }

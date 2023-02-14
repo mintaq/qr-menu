@@ -8,7 +8,7 @@ import (
 type Theme struct {
 	BasicModel
 	StoreId    uint64      `json:"store_id" validate:"required"`
-	CoverImage string      `json:"cover_image"`
+	CoverImage string      `json:"cover_image" gorm:"default:null"`
 	Colors     ThemeColors `json:"colors" validate:"required,json"`
 }
 
