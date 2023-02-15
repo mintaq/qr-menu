@@ -41,15 +41,13 @@ func PrivateRoutes(a *fiber.App) {
 	v1.Post("/theme/create", controllers.CreateTheme)
 	v1.Get("/themes", controllers.GetThemes)
 
-	// Routes for QR Code:
-	v1.Post("qr-code/create", controllers.CreateQrCode)
-
 	// Routes for App:
 	v1.Post("/app/create", controllers.CreateApp)
 
 	// Routes for Product:
 	v1.Post("/product/create", controllers.CreateProduct)
 	v1.Get("/products", controllers.GetProducts)
+	v1.Delete("/product/:id", controllers.DeleteProduct)
 
 	// Routes for Collection:
 	v1.Get("/collections", controllers.GetCollections)
@@ -57,4 +55,5 @@ func PrivateRoutes(a *fiber.App) {
 	// Routes for Menu:
 	v1.Post("/menu/create", controllers.CreateMenu)
 	v1.Get("/menus", controllers.GetMenus)
+	v1.Delete("/menu/:id", controllers.DeleteMenu)
 }

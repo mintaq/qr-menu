@@ -94,3 +94,38 @@ func GetProducts(c *fiber.Ctx) error {
 		"pagination": pagination,
 	})
 }
+
+func DeleteProduct(c *fiber.Ctx) error {
+	claims, err := utils.ExtractTokenMetadata(c)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	store := new(models.Store)
+	productId := c.Params("id")
+	storeId := c.Query("store_id")
+
+	if tx := database.Database.Where("id = ? AND user_id = ?", storeId, claims.UserID).First(store); tx.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   tx.Error.Error(),
+		})
+	}
+
+	tx := database.Database.Where("id = ? AND store_id = ?", productId, storeId).Delete(&models.Product{})
+	if tx.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   tx.Error.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"error":        false,
+		"msg":          "success",
+		"row_affected": tx.RowsAffected,
+	})
+}

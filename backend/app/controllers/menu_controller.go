@@ -110,3 +110,40 @@ func GetMenus(c *fiber.Ctx) error {
 		"pagination": pagination,
 	})
 }
+
+func DeleteMenu(c *fiber.Ctx) error {
+	claims, err := utils.ExtractTokenMetadata(c)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	store := new(models.Store)
+	menuId := c.Params("id")
+	storeId := c.Query("store_id")
+
+	if tx := database.Database.Where("id = ? AND user_id = ?", storeId, claims.UserID).First(store); tx.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   tx.Error.Error(),
+		})
+	}
+
+	tx := database.Database.Where("id = ? AND store_id = ?", menuId, storeId).Delete(&models.Menu{})
+	if tx.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   tx.Error.Error(),
+		})
+	}
+
+	rowsAffected := tx.RowsAffected
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"error":        false,
+		"msg":          "success",
+		"row_affected": rowsAffected,
+	})
+}
