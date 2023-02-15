@@ -13,7 +13,7 @@ type Theme struct {
 }
 
 type ThemeColors struct {
-	Button       string `json:"button" validate:"required"`
+	ThemeColor   string `json:"theme_color" validate:"required"`
 	CategoryText string `json:"category_text" validate:"required"`
 	ProductText  string `json:"product_text" validate:"required"`
 	Background   string `json:"background" validate:"required"`
