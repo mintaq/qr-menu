@@ -69,7 +69,7 @@ func (sla VariantArray) Value() (driver.Value, error) {
 	return string(val), err
 }
 
-type ImageArray []Variant
+type ImageArray []Image
 
 func (sla *ImageArray) Scan(src interface{}) error {
 	return json.Unmarshal(src.([]byte), &sla)
@@ -80,7 +80,7 @@ func (sla ImageArray) Value() (driver.Value, error) {
 	return string(val), err
 }
 
-type OptionArray []Variant
+type OptionArray []Option
 
 func (sla *OptionArray) Scan(src interface{}) error {
 	return json.Unmarshal(src.([]byte), &sla)

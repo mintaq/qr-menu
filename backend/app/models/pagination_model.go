@@ -1,0 +1,108 @@
+package models
+
+import (
+	"math"
+	"regexp"
+	"strconv"
+	"strings"
+
+	"github.com/gofiber/fiber/v2"
+	"gorm.io/gorm"
+)
+
+type Pagination struct {
+	Limit      int   `json:"limit" gorm:"omitempty;query:limit"`
+	Page       int   `json:"page" gorm:"omitempty;query:page"`
+	TotalRows  int64 `json:"total_rows"`
+	TotalPages int64 `json:"total_pages"`
+}
+
+func (p *Pagination) GetOffset() int {
+	return (p.GetPage() - 1) * p.GetLimit()
+}
+
+func (p *Pagination) GetLimit() int {
+	if p.Limit == 0 {
+		p.Limit = 10
+	}
+	return p.Limit
+}
+
+func (p *Pagination) GetPage() int {
+	if p.Page == 0 {
+		p.Page = 1
+	}
+	return p.Page
+}
+
+// Paginate performs pagination on a GORM query by extracting pagination parameters from
+// a Fiber context object and applying them to the query. The function returns a Pagination
+// object containing information about the current page and the total number of pages, as well
+// as a function that can be used to apply the pagination to a GORM query. The pagination parameters
+// are extracted from the Fiber context object as follows:
+//
+//  - The "page" query parameter specifies the current page number. If this parameter is not present
+//    or its value is invalid, the function defaults to page 1.
+//  - The "limit" query parameter specifies the maximum number of rows per page. If this parameter is
+//    not present or its value is invalid, the function defaults to 10.
+//  - The "sort_by" query parameter specifies the column to sort by and the sort order (ascending or
+//    descending). If this parameter is not present or its value is invalid, the function defaults to
+//    sorting by the "id" column in ascending order.
+//
+// The function also takes a GORM query object and a model object as parameters. The query object
+// should already contain any necessary filters for the query, and the model object should be a
+// pointer to the model that the query operates on. The function applies the pagination to the
+// query by adding an ORDER BY clause with the specified sort order, an OFFSET clause with the
+// calculated offset, and a LIMIT clause with the specified limit. The function also calculates
+// the total number of pages by dividing the total number of rows by the limit, and rounding up
+// to the nearest integer.
+//
+// Example usage:
+//
+//     var users []User
+//     query := db.Model(&users).Where("status = ?", "active")
+//     pagination, applyPagination := Paginate(&users, c, query)
+//     applyPagination(query).Find(&users)
+//
+// This example applies pagination to a query that retrieves all active users, using pagination
+// parameters extracted from a Fiber context object "c". The `applyPagination` function can be used
+// to apply the pagination to the query, and the `pagination` object contains information about
+// the current page and the total number of pages.
+func Paginate(model interface{}, c *fiber.Ctx, query *gorm.DB) (p *Pagination, f func(db *gorm.DB) *gorm.DB) {
+	var totalPages, totalRows int64
+	db := query.Session(&gorm.Session{})
+	page, _ := strconv.Atoi(c.Query("page", "1"))
+	if page <= 0 {
+		page = 1
+	}
+
+	limit, _ := strconv.Atoi(c.Query("limit", "10"))
+	switch {
+	case limit > 100:
+		limit = 100
+	case limit <= 0:
+		limit = 1
+	}
+
+	sortBy := c.Query("sort_by", "id:asc")
+	if match, _ := regexp.MatchString(`^[a-zA-Z]+:(?i)(asc|desc)$`, sortBy); !match {
+		sortBy = "id:asc"
+	}
+	sortBy = strings.ReplaceAll(sortBy, ":", " ")
+
+	offset := (page - 1) * limit
+
+	db.Model(&model).Where(query).Count(&totalPages)
+	db.Model(&model).Where(query).Offset(offset).Limit(limit).Count(&totalRows)
+
+	pagination := Pagination{
+		Limit:      limit,
+		Page:       page,
+		TotalPages: int64(math.Round(float64(totalPages) / float64(limit))),
+		TotalRows:  totalRows,
+	}
+
+	return &pagination, func(db *gorm.DB) *gorm.DB {
+		return db.Where(query).Offset(offset).Limit(limit).Order(sortBy)
+	}
+}
