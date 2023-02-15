@@ -73,12 +73,12 @@ func CreateMenu(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"error": false,
-		"msg":   "",
+		"msg":   "success",
 		"data":  menu,
 	})
 }
 
-func ListMenus(c *fiber.Ctx) error {
+func GetMenus(c *fiber.Ctx) error {
 	_, err := utils.ExtractTokenMetadata(c)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -87,21 +87,26 @@ func ListMenus(c *fiber.Ctx) error {
 		})
 	}
 
-	menu := new(models.Menu)
-	pagination := models.Pagination{
-		Limit: 5,
-		Page:  1,
+	var menus []models.Menu
+	query := database.Database.Where("store_id = ?", c.Query("store_id"))
+	menuName := c.Query("name")
+	if menuName != "" {
+		query = query.Where("name LIKE ?", "%"+menuName+"%")
 	}
-	res, err := menu.List(pagination)
-	if err != nil {
+
+	pagination, scope := models.Paginate(models.Menu{}, c, query)
+
+	if tx := database.Database.Scopes(scope).Find(&menus); tx.Error != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": true,
-			"msg":   err.Error(),
+			"msg":   tx.Error.Error(),
 		})
 	}
+
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"error": false,
-		"msg":   "",
-		"data":  res,
+		"error":      false,
+		"msg":        "success",
+		"data":       menus,
+		"pagination": pagination,
 	})
 }

@@ -66,3 +66,31 @@ func CreateProduct(c *fiber.Ctx) error {
 		"data":  product,
 	})
 }
+
+func GetProducts(c *fiber.Ctx) error {
+	_, err := utils.ExtractTokenMetadata(c)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	var products []models.Product
+	query := database.Database.Where("store_id = ?", c.Query("store_id"))
+	pagination, scopes := models.Paginate(models.Product{}, c, query)
+
+	if tx := database.Database.Scopes(scopes).Find(&products); tx.Error != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   tx.Error.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"error":      false,
+		"msg":        "success",
+		"data":       products,
+		"pagination": pagination,
+	})
+}
