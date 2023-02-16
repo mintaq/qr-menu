@@ -42,6 +42,7 @@ type Product struct {
 type CreateProductBody struct {
 	Product
 	CollectionId uint64 `json:"collection_id"`
+	MenuId       uint64 `json:"menu_id" validate:"required"`
 }
 
 type ProductDBForm interface {

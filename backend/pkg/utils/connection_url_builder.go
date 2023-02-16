@@ -52,7 +52,7 @@ func ConnectionURLBuilder(n string) (string, error) {
 	case repository.STATIC_PUBLIC_URL:
 		url = fmt.Sprintf(
 			"%s:%s%s",
-			os.Getenv("SERVER_HOST"),
+			os.Getenv("SERVER_HOST_STATIC_FILE"),
 			os.Getenv("SERVER_PORT"),
 			os.Getenv("STATIC_PUBLIC_PATH"),
 		)
