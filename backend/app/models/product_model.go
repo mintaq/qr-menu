@@ -29,7 +29,7 @@ type Product struct {
 	BasicModel
 	SapoProductResp
 	ProductId      uint64    `json:"product_id"`
-	Price          float32   `json:"price" validate:"required" gorm:"default:null"`
+	Price          float64   `json:"price" validate:"required" gorm:"default:null"`
 	StoreId        uint64    `json:"store_id" validate:"required"`
 	UserAppTokenId uint64    `json:"user_app_token_id" gorm:"default:null"`
 	IsChargeTax    int       `json:"is_charge_tax" validate:"eq=0|eq=1"`
@@ -41,19 +41,19 @@ type Product struct {
 
 type CreateProductBody struct {
 	Product
-	CollectionId uint64 `json:"collection_id" validate:"required"`
+	CollectionId uint64 `json:"collection_id"`
 }
 
 type ProductDBForm interface {
 	GetProduct() *Product
-	GenProductNameAlias() string
+	GetProductNameAlias() string
 }
 
 func (p *CreateProductBody) GetProduct() *Product {
 	return &p.Product
 }
 
-func (p *CreateProductBody) GenProductNameAlias() string {
+func (p *CreateProductBody) GetProductNameAlias() string {
 	lowerCaseName := (strings.ToLower((strings.Trim(p.ProductName, " "))))
 	return strings.ReplaceAll(lowerCaseName, " ", "_")
 }
@@ -93,7 +93,7 @@ func (sla OptionArray) Value() (driver.Value, error) {
 
 type Variant struct {
 	Id                  int       `json:"id"`
-	ProductId           int       `json:"product_id"`
+	ProductId           uint64    `json:"product_id"`
 	Title               string    `json:"title"`
 	Price               float32   `json:"price"`
 	Sku                 string    `json:"sku"`
@@ -114,19 +114,19 @@ type Variant struct {
 }
 
 type Option struct {
-	Id        int      `json:"id"`
-	ProductId int      `json:"product_id"`
+	Id        uint64   `json:"id"`
+	ProductId uint64   `json:"product_id"`
 	Name      string   `json:"name"`
 	Position  int      `json:"position"`
 	Values    []string `json:"values"`
 }
 
 type Image struct {
-	Id         int       `json:"id"`
-	ProductId  int       `json:"product_id"`
-	Position   int       `json:"position"`
-	CreatedOn  time.Time `json:"created_on"`
-	ModifiedOn time.Time `json:"modified_on"`
+	Id         uint64    `json:"id" gorm:"default:null"`
+	ProductId  uint64    `json:"product_id"`
+	Position   int       `json:"position" gorm:"default:null"`
+	CreatedOn  time.Time `json:"created_on" gorm:"default:null"`
+	ModifiedOn time.Time `json:"modified_on" gorm:"default:null"`
 	Src        string    `json:"src"`
-	VariantIds []int     `json:"variant_ids"`
+	VariantIds []int     `json:"variant_ids" gorm:"default:null"`
 }
