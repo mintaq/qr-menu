@@ -15,7 +15,7 @@ type SapoProductResp struct {
 	ProductId   uint64       `json:"id"`
 	Images      ImageArray   `json:"images"`
 	Options     OptionArray  `json:"options"`
-	ProductType string       `json:"product_type" validate:"required"`
+	ProductType string       `json:"product_type" gorm:"default:null"`
 	PublishedOn time.Time    `json:"published_on" gorm:"default:null"`
 	Tags        string       `json:"tags" gorm:"default:null"`
 	ProductName string       `json:"name" gorm:"column:product_name" validate:"required"`

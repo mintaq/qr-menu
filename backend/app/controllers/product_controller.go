@@ -53,6 +53,11 @@ func CreateProduct(c *fiber.Ctx) error {
 		case "collection_id":
 			collectionId, _ := strconv.Atoi(value[0])
 			createProductBody.CollectionId = uint64(collectionId)
+		case "is_charge_tax":
+			isChargeTax, _ := strconv.Atoi(value[0])
+			if isChargeTax == 0 || isChargeTax == 1 {
+				createProductBody.IsChargeTax = isChargeTax
+			}
 		}
 	}
 	createProductBody.Gateway = repository.GATEWAY_CUSTOM
