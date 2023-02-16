@@ -3,14 +3,12 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/app/models"
-	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/repository"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/platform/database"
 )
@@ -76,33 +74,18 @@ func CreateTheme(c *fiber.Ctx) error {
 		})
 	}
 
-	hostURL, _ := utils.ConnectionURLBuilder(repository.STATIC_PUBLIC_URL)
-	staticPublicPath, err := utils.GetStaticPublicPathByStore(store.Subdomain)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
-	}
-
 	// Get all files from "file" key:
 	files := form.File["file"]
 
 	// Loop through files:
 	for _, file := range files {
 		if !strings.Contains(file.Header["Content-Type"][0], "image/") {
-			log.Println("test")
 			continue
 		}
 
-		contentType := strings.Split(file.Header["Content-Type"][0], "/")
-		imageType := contentType[1]
-		fileName := fmt.Sprintf("%s%d.%s", os.Getenv("THEME_COVER_IMAGE_PREFIX"), theme.ID, imageType)
-		filePath := fmt.Sprintf("%s/%s", staticPublicPath, fileName)
-		filePathSrc := fmt.Sprintf("%s/stores/%s/%s", hostURL, store.Subdomain, fileName)
-
-		// Save the files to disk:
-		if err := c.SaveFile(file, filePath); err != nil {
+		fileName := fmt.Sprintf("%s%d", os.Getenv("THEME_COVER_IMAGE_PREFIX"), theme.ID)
+		filePathSrc, err := utils.CreateImage(file, fileName, store.Subdomain, c)
+		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": true,
 				"msg":   err.Error(),
