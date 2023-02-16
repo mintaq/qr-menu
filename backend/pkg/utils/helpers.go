@@ -13,7 +13,7 @@ import (
 )
 
 func CreateQRCode(store, url, fileName string) (string, error) {
-	staticPublicPath, err := GetStaticPublicPathByStore(store)
+	staticPublicPath, err := GetOrCreateStaticPublicFolderPathByStore(store)
 	if err != nil {
 		return "", err
 	}
@@ -36,7 +36,7 @@ func CreateImage(file *multipart.FileHeader, fileName, storeSubdomain string, c 
 	}
 
 	hostURL, _ := ConnectionURLBuilder(repository.STATIC_PUBLIC_URL)
-	staticPublicPath, err := GetStaticPublicPathByStore(storeSubdomain)
+	staticPublicPath, err := GetOrCreateStaticPublicFolderPathByStore(storeSubdomain)
 	if err != nil {
 		return "", err
 	}
