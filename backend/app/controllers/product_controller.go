@@ -12,6 +12,7 @@ import (
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/repository"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/platform/database"
+	"gorm.io/gorm/clause"
 )
 
 func CreateProduct(c *fiber.Ctx) error {
@@ -58,10 +59,13 @@ func CreateProduct(c *fiber.Ctx) error {
 			if isChargeTax == 0 || isChargeTax == 1 {
 				createProductBody.IsChargeTax = isChargeTax
 			}
+		case "menu_id":
+			menuId, _ := strconv.Atoi(value[0])
+			createProductBody.MenuId = uint64(menuId)
 		}
 	}
 	createProductBody.Gateway = repository.GATEWAY_CUSTOM
-	createProductBody.ProductId = uint64(time.Now().Unix())
+	createProductBody.ProductId = uint64(time.Now().UnixMilli())
 	createProductBody.Alias = createProductBody.GetProductNameAlias()
 
 	if tx := database.Database.Where("id = ? AND user_id = ?", createProductBody.StoreId, claims.UserID).First(store); tx.Error != nil {
@@ -87,7 +91,7 @@ func CreateProduct(c *fiber.Ctx) error {
 		}
 
 		image := &models.Image{
-			Id:        uint64(time.Now().Unix()),
+			Id:        uint64(time.Now().UnixMilli()),
 			Src:       filePathSrc,
 			ProductId: createProductBody.ProductId,
 		}
@@ -124,6 +128,19 @@ func CreateProduct(c *fiber.Ctx) error {
 				"msg":   tx.Error.Error(),
 			})
 		}
+	}
+
+	menuProduct := &models.MenuProduct{
+		MenuId:    createProductBody.MenuId,
+		ProductId: createProductBody.ProductId,
+		StoreId:   createProductBody.StoreId,
+	}
+
+	if tx := database.Database.Clauses(clause.OnConflict{DoNothing: true}).Create(menuProduct); tx.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   tx.Error.Error(),
+		})
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{

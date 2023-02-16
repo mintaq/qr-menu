@@ -254,6 +254,22 @@ func SyncSapoCustomCollections(c *fiber.Ctx) error {
 		})
 	}
 
+	syncSapoCollectRecursiveTask, err := tasks.NewSyncSapoCollectRecursiveTask(1, 1, syncReq.SapoDomain, syncReq.StoreId)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	_, err = worker.AsynqClient.Enqueue(syncSapoCollectRecursiveTask, asynq.MaxRetry(3), asynq.Timeout(1*time.Minute))
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"error": false,
 		"msg":   "success",

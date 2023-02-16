@@ -147,3 +147,59 @@ func DeleteMenu(c *fiber.Ctx) error {
 		"row_affected": rowsAffected,
 	})
 }
+
+func UpdateMenu(c *fiber.Ctx) error {
+	claims, err := utils.ExtractTokenMetadata(c)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	store := new(models.Store)
+	menuId := c.Params("id")
+
+	menu := new(models.Menu)
+	storeId := c.Query("store_id")
+
+	if err := c.BodyParser(menu); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	if err := utils.NewValidator().Struct(menu); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   utils.ValidatorErrors(err),
+		})
+	}
+
+	if tx := database.Database.Where("id = ? AND user_id = ?", storeId, claims.UserID).First(store); tx.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   tx.Error.Error(),
+		})
+	}
+
+	tx := database.Database.Model(menu).Where("id = ? ", menuId).Updates(models.Menu{
+		Name:            menu.Name,
+		ColorOnThePrint: menu.ColorOnThePrint,
+	})
+	if tx.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   tx.Error.Error(),
+		})
+	}
+
+	rowsAffected := tx.RowsAffected
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"error":        false,
+		"msg":          "success",
+		"row_affected": rowsAffected,
+	})
+}
