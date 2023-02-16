@@ -47,7 +47,7 @@ func PrivateRoutes(a *fiber.App) {
 	// Routes for Product:
 	v1.Post("/product/create", controllers.CreateProduct)
 	v1.Get("/products", controllers.GetProducts)
-	v1.Delete("/product/:id", controllers.DeleteProduct)
+	v1.Delete("/product/:product_id", controllers.DeleteProduct)
 
 	// Routes for Collection:
 	v1.Get("/collections", controllers.GetCollections)

@@ -166,7 +166,7 @@ func DeleteProduct(c *fiber.Ctx) error {
 	}
 
 	store := new(models.Store)
-	productId := c.Params("id")
+	productId := c.Params("product_id")
 	storeId := c.Query("store_id")
 
 	if tx := database.Database.Where("id = ? AND user_id = ?", storeId, claims.UserID).First(store); tx.Error != nil {
@@ -176,7 +176,14 @@ func DeleteProduct(c *fiber.Ctx) error {
 		})
 	}
 
-	tx := database.Database.Where("id = ? AND store_id = ?", productId, storeId).Delete(&models.Product{})
+	if tx := database.Database.Where("store_id = ? AND product_id = ?", storeId, productId).Delete(models.Collect{}); tx.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   tx.Error.Error(),
+		})
+	}
+
+	tx := database.Database.Where("product_id = ? AND store_id = ?", productId, storeId).Delete(models.Product{})
 	if tx.Error != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": true,
