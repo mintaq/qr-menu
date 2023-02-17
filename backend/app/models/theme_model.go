@@ -10,6 +10,7 @@ type Theme struct {
 	StoreId    uint64      `json:"store_id" validate:"required"`
 	CoverImage string      `json:"cover_image" gorm:"default:null"`
 	Colors     ThemeColors `json:"colors" validate:"required,json"`
+	Role       string      `json:"role" validate:"required,lte=25,oneof=main unpublished"`
 }
 
 type ThemeColors struct {
