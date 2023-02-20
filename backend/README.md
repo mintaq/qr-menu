@@ -143,3 +143,23 @@ Local
 docker compose build
 docker compose up -d
 ```
+
+## SSH docker container
+
+```
+docker ps
+
+SSH container
+docker exec -it 7e04ca162a0c /bin/sh
+
+Migrate
+make migrate.up
+make migrate.up.1
+migrate -path platform/migrations -database "mysql://root:root@tcp(digital-menu-database:3306)/qr_menu" u
+p
+
+Rollback
+make migrate.down
+make migrate.down.1
+migrate -path platform/migrations -database "mysql://root:root@tcp(digital-menu-database:3306)/qr_menu" down
+```
