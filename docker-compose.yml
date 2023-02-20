@@ -24,7 +24,7 @@ services:
     volumes:
       - redis:/data
     ports:
-      - 6379:6379
+      - 63799:6379
     networks:
       - backend
 
