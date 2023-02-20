@@ -22,7 +22,7 @@ func CreateQRCode(store, url, fileName string) (string, error) {
 	file := fmt.Sprintf("%s/%s", staticPublicPath, fileName)
 	filePathSrc := fmt.Sprintf("%s/stores/%s/%s", hostURL, store, fileName)
 
-	err = qrcode.WriteColorFile(url, qrcode.Highest, 256, color.Black, color.White, file)
+	err = qrcode.WriteColorFile(url, qrcode.Highest, 256, color.White, color.Black, file)
 	if err != nil {
 		return "", err
 	}
