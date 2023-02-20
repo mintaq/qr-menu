@@ -6,6 +6,7 @@ import (
 	"image/color"
 	"mime/multipart"
 	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/skip2/go-qrcode"
@@ -51,4 +52,8 @@ func CreateImage(file *multipart.FileHeader, fileName, storeSubdomain string, c 
 	}
 
 	return filePathSrc, nil
+}
+
+func CreateUintId() uint64 {
+	return uint64(time.Now().UnixMilli())
 }

@@ -3,6 +3,7 @@ package models
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"strings"
 	"time"
 )
 
@@ -16,24 +17,29 @@ type Collection struct {
 }
 
 type SapoCollectionResp struct {
-	CollectionId uint64      `json:"id"`
-	Description  string      `json:"description"`
-	Alias        string      `json:"alias"`
-	Name         string      `json:"name"`
-	Image        ImageObject `json:"image"`
+	CollectionId uint64          `json:"id"`
+	Description  string          `json:"description" gorm:"default:null"`
+	Alias        string          `json:"alias" gorm:"default:null"`
+	Name         string          `json:"name" validate:"required"`
+	Image        CollectionImage `json:"image" gorm:"default:null"`
 }
 
-type ImageObject struct {
+type CollectionImage struct {
 	Id        uint64    `json:"id"`
 	Src       string    `json:"src"`
-	CreatedOn time.Time `json:"created_on"`
+	CreatedOn time.Time `json:"created_on" gorm:"default:null"`
 }
 
-func (sla *ImageObject) Scan(src interface{}) error {
+func (sla *CollectionImage) Scan(src interface{}) error {
 	return json.Unmarshal(src.([]byte), &sla)
 }
 
-func (sla ImageObject) Value() (driver.Value, error) {
+func (sla CollectionImage) Value() (driver.Value, error) {
 	val, err := json.Marshal(sla)
 	return string(val), err
+}
+
+func (p *Collection) GetNameAlias() string {
+	lowerCaseName := (strings.ToLower((strings.Trim(p.Name, " "))))
+	return strings.ReplaceAll(lowerCaseName, " ", "_")
 }
