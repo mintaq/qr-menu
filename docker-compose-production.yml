@@ -24,7 +24,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile.production
     ports:
-      - 127.0.0.1:5008:5008
+      - 127.0.0.1:5009:5008
     networks:
       - backend
     depends_on:
