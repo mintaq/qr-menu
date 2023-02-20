@@ -163,3 +163,7 @@ make migrate.down
 make migrate.down.1
 migrate -path platform/migrations -database "mysql://root:root@tcp(digital-menu-database:3306)/qr_menu" down
 ```
+
+## PHPMyAdmin
+
+http://localhost:8081
