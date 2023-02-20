@@ -36,7 +36,7 @@ services:
       - 127.0.0.1:5008:5008
     volumes:
       - ./backend:/usr/src/app
-    command: air ./main.go -b 0.0.0.0
+    command: fiber dev
     networks:
       - backend
     depends_on:

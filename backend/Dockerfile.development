@@ -8,13 +8,10 @@ WORKDIR /usr/src/app
 # Copy and download dependency using go mod.
 COPY go.mod go.sum ./
 RUN go mod download
-RUN go install github.com/cosmtrek/air@latest
+RUN go install github.com/gofiber/cli/fiber@latest
 
 # Copy the code into the container.
 COPY . .
 
-# RUN go mod tidy
+RUN go mod tidy
 
-# EXPOSE 5008
-
-# CMD ["air ./main.go -b 0.0.0.0"]
