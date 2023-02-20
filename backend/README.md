@@ -133,6 +133,7 @@ Apache 2.0 &copy; [Vic Shóstak](https://shostak.dev/) & [True web artisans](htt
 ## Docker compose
 
 ```
+cp .env.docker .env
 Production
 
 docker compose -f docker-compose-production.yml build
