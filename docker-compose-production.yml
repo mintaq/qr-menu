@@ -19,6 +19,16 @@ services:
     networks:
       - backend
 
+  digital-menu-redis:
+    image: redis:alpine
+    restart: unless-stopped
+    volumes:
+      - redis:/data
+    ports:
+      - 6379:6379
+    networks:
+      - backend
+
   digital-menu-backend:
     build:
       context: ./backend
