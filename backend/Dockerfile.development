@@ -14,6 +14,7 @@ RUN go install github.com/gofiber/cli/fiber@latest
 RUN go install -tags 'mysql' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 
 # Copy the code into the container.
+RUN echo ./.env.docker .env
 COPY . .
 
 RUN go mod tidy

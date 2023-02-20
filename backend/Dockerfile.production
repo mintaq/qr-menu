@@ -11,6 +11,7 @@ RUN go mod download
 RUN go install -tags 'mysql' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 
 # Copy the code into the container.
+RUN echo ./.env.docker .env
 COPY . .
 
 # Set necessary environment variables needed for our image and build the API server.
