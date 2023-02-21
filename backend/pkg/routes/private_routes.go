@@ -52,6 +52,7 @@ func PrivateRoutes(a *fiber.App) {
 
 	// Routes for Collection:
 	v1.Get("/collections", controllers.GetCollections)
+	v1.Post("/collection/create", controllers.CreateCollection)
 
 	// Routes for Menu:
 	v1.Post("/menu/create", controllers.CreateMenu)

@@ -6,6 +6,7 @@ import (
 	"image/color"
 	"mime/multipart"
 	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/skip2/go-qrcode"
@@ -22,7 +23,7 @@ func CreateQRCode(store, url, fileName string) (string, error) {
 	file := fmt.Sprintf("%s/%s", staticPublicPath, fileName)
 	filePathSrc := fmt.Sprintf("%s/stores/%s/%s", hostURL, store, fileName)
 
-	err = qrcode.WriteColorFile(url, qrcode.Highest, 256, color.Black, color.White, file)
+	err = qrcode.WriteColorFile(url, qrcode.Highest, 256, color.White, color.Black, file)
 	if err != nil {
 		return "", err
 	}
@@ -51,4 +52,8 @@ func CreateImage(file *multipart.FileHeader, fileName, storeSubdomain string, c 
 	}
 
 	return filePathSrc, nil
+}
+
+func CreateUintId() uint64 {
+	return uint64(time.Now().UnixMilli())
 }

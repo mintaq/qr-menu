@@ -57,7 +57,7 @@ func CreateTheme(c *fiber.Ctx) error {
 	}
 
 	if err := utils.NewValidator().Struct(theme); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": true,
 			"msg":   utils.ValidatorErrors(err),
 		})

@@ -70,7 +70,7 @@ func (sla VariantArray) Value() (driver.Value, error) {
 	return string(val), err
 }
 
-type ImageArray []Image
+type ImageArray []ProductImage
 
 func (sla *ImageArray) Scan(src interface{}) error {
 	return json.Unmarshal(src.([]byte), &sla)
@@ -122,7 +122,7 @@ type Option struct {
 	Values    []string `json:"values"`
 }
 
-type Image struct {
+type ProductImage struct {
 	Id         uint64    `json:"id" gorm:"default:null"`
 	ProductId  uint64    `json:"product_id"`
 	Position   int       `json:"position" gorm:"default:null"`

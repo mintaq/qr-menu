@@ -1,0 +1,26 @@
+FROM golang:1.20-alpine AS builder
+
+LABEL maintainer="Le Bao Khang <lebaokhang@omegatheme.com> (https://xipat.com/)"
+
+RUN apk add g++ && apk add make
+
+# Move to working directory (/usr/src/app).
+WORKDIR /usr/src/app
+
+# Copy and download dependency using go mod.
+COPY go.mod go.sum ./
+RUN go install github.com/gofiber/cli/fiber@latest
+RUN go install -tags 'mysql' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+RUN go install github.com/swaggo/swag/cmd/swag@latest
+RUN go install github.com/securego/gosec/v2/cmd/gosec@latest
+RUN go install -v github.com/go-critic/go-critic/cmd/gocritic@latest
+RUN go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.51.2
+
+# Copy the code into the container.
+COPY . .
+
+RUN go mod tidy
+RUN swag init --parseDependency --parseInternal
+
+#FROM alpine:3.16
+CMD ["/bin/sh", "-c", "fiber dev"]

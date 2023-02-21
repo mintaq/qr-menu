@@ -5,7 +5,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/app/models"
@@ -65,7 +64,7 @@ func CreateProduct(c *fiber.Ctx) error {
 		}
 	}
 	createProductBody.Gateway = repository.GATEWAY_CUSTOM
-	createProductBody.ProductId = uint64(time.Now().UnixMilli())
+	createProductBody.ProductId = utils.CreateUintId()
 	createProductBody.Alias = createProductBody.GetProductNameAlias()
 
 	if tx := database.Database.Where("id = ? AND user_id = ?", createProductBody.StoreId, claims.UserID).First(store); tx.Error != nil {
@@ -90,8 +89,8 @@ func CreateProduct(c *fiber.Ctx) error {
 			})
 		}
 
-		image := &models.Image{
-			Id:        uint64(time.Now().UnixMilli()),
+		image := &models.ProductImage{
+			Id:        utils.CreateUintId(),
 			Src:       filePathSrc,
 			ProductId: createProductBody.ProductId,
 		}
