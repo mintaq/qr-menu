@@ -33,6 +33,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile.production
+    restart: unless-stopped
     ports:
       - 127.0.0.1:5009:5008
     networks:
