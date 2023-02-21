@@ -4,7 +4,6 @@
 .gitignore
 .env.*
 Dockerfile
-Makefile
 LICENSE
 **/*.md
 **/*_test.go
