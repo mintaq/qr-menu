@@ -20,6 +20,7 @@ require (
 	github.com/stretchr/testify v1.8.1
 	github.com/swaggo/swag v1.8.10
 	golang.org/x/crypto v0.4.0
+	golang.org/x/exp v0.0.0-20230213192124-5e25df0256eb
 	gorm.io/driver/mysql v1.4.5
 	gorm.io/gorm v1.24.3
 )

@@ -11,6 +11,7 @@ import (
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/repository"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/platform/database"
+	"golang.org/x/exp/slices"
 )
 
 func GetCollections(c *fiber.Ctx) error {
@@ -22,28 +23,58 @@ func GetCollections(c *fiber.Ctx) error {
 		})
 	}
 
+	queryParams := new(models.CollectionQueryParams)
+
+	if err := c.QueryParser(queryParams); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
 	store := new(models.Store)
-	if tx := database.Database.Where("id = ? AND user_id = ?", c.Query("store_id"), claims.UserID).First(store); tx.Error != nil {
+	if tx := database.Database.Where("id = ? AND user_id = ?", queryParams.StoreId, claims.UserID).First(store); tx.Error != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": true,
 			"msg":   tx.Error.Error(),
 		})
 	}
 
-	var collections []models.Collection
-	query := database.Database.Where("store_id = ?", c.Query("store_id"))
-	pagination, scopes := models.Paginate(models.Collection{}, c, query)
+	query := database.Database.Where("store_id = ?", store.ID)
+	pagination, scope := models.Paginate(models.Collection{}, c, query)
+	collections := []models.Collection{}
 
-	if tx := database.Database.Scopes(scopes).Find(&collections); tx.Error != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+	if tx := database.Database.Model(models.Collection{}).Scopes(scope).Find(&collections); tx.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": true,
 			"msg":   tx.Error.Error(),
 		})
+	}
+
+	if !slices.Contains(queryParams.Includes, "products") {
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+			"error":      false,
+			"msg":        "success",
+			"data":       collections,
+			"pagination": pagination,
+		})
+	}
+
+	for index := range collections {
+		collectionPointer := &collections[index]
+		prods, err := collectionPointer.GetProducts(database.Database)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": true,
+				"msg":   err.Error(),
+			})
+		}
+		collectionPointer.Products = prods
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"error":      false,
-		"msg":        "",
+		"msg":        "success",
 		"data":       collections,
 		"pagination": pagination,
 	})
