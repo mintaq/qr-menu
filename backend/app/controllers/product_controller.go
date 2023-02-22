@@ -177,6 +177,41 @@ func GetProducts(c *fiber.Ctx) error {
 	})
 }
 
+func GetProductByProductId(c *fiber.Ctx) error {
+	_, err := utils.ExtractTokenMetadata(c)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	storeIdQuery := c.Query("store_id", "")
+	if storeIdQuery == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   "store_id is required param",
+		})
+	}
+
+	storeId, _ := strconv.Atoi(storeIdQuery)
+	productId, _ := strconv.Atoi(c.Params("product_id"))
+	product := new(models.Product)
+
+	if tx := database.Database.First(product, "product_id = ? AND store_id = ?", productId, storeId); tx.Error != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   tx.Error.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"error": false,
+		"msg":   "success",
+		"data":  product,
+	})
+}
+
 func DeleteProduct(c *fiber.Ctx) error {
 	claims, err := utils.ExtractTokenMetadata(c)
 	if err != nil {
