@@ -62,14 +62,13 @@ func GetCollections(c *fiber.Ctx) error {
 
 	for index := range collections {
 		collectionPointer := &collections[index]
-		prods, err := collectionPointer.GetProducts(database.Database)
+		_, err := collectionPointer.GetProducts(database.Database)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": true,
 				"msg":   err.Error(),
 			})
 		}
-		collectionPointer.Products = prods
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
