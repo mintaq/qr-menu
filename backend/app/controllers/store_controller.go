@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"strconv"
+
 	"github.com/gofiber/fiber/v2"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/app/models"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils"
@@ -48,7 +50,7 @@ func CreateStore(c *fiber.Ctx) error {
 	})
 }
 
-func GetStore(c *fiber.Ctx) error {
+func GetStores(c *fiber.Ctx) error {
 	tokenMetaData, err := utils.ExtractTokenMetadata(c)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -57,12 +59,43 @@ func GetStore(c *fiber.Ctx) error {
 		})
 	}
 
-	store := new(models.Store)
+	stores := []models.Store{}
 
-	if tx := database.Database.First(store, "user_id = ?", tokenMetaData.UserID); tx.Error != nil {
+	query := database.Database.Where("user_id = ?", tokenMetaData.UserID)
+
+	pagination, scopes := models.Paginate(models.Store{}, c, query)
+
+	if tx := database.Database.Model(models.Store{}).Scopes(scopes).Find(&stores); tx.Error != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": true,
 			"msg":   err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"error":      false,
+		"msg":        "success",
+		"data":       stores,
+		"pagination": pagination,
+	})
+}
+
+func GetStoreById(c *fiber.Ctx) error {
+	tokenMetaData, err := utils.ExtractTokenMetadata(c)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	storeId, _ := strconv.Atoi(c.Params("id", ""))
+	store := new(models.Store)
+
+	if tx := database.Database.First(store, "id = ? AND user_id = ?", storeId, tokenMetaData.UserID); tx.Error != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   tx.Error.Error(),
 		})
 	}
 
