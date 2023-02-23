@@ -34,22 +34,22 @@ func PrivateRoutes(a *fiber.App) {
 	v1.Post("/sapo/smart-collections/sync", controllers.SyncSapoSmartCollections)
 
 	// Routes for Store:
-	v1.Post("/stores/create", controllers.CreateStore)
+	v1.Post("/stores", controllers.CreateStore)
 	v1.Get("/stores", controllers.GetStores)
 	v1.Get("/stores/:id", controllers.GetStoreById)
 	v1.Get("/stores/subdomain/:subdomain", controllers.GetStoreBySubdomain)
 	v1.Put("/stores/:id", controllers.UpdateStore)
 
 	// Routes for Theme:
-	v1.Post("/themes/create", controllers.CreateTheme)
+	v1.Post("/themes", controllers.CreateTheme)
 	v1.Get("/themes", controllers.GetThemes)
 	v1.Put("/themes/:id", controllers.UpdateTheme)
 
 	// Routes for App:
-	v1.Post("/apps/create", controllers.CreateApp)
+	v1.Post("/apps", controllers.CreateApp)
 
 	// Routes for Product:
-	v1.Post("/products/create", controllers.CreateProduct)
+	v1.Post("/products", controllers.CreateProduct)
 	v1.Get("/products", controllers.GetProducts)
 	v1.Get("/products/:product_id", controllers.GetProductByProductId)
 	v1.Delete("/products/:product_id", controllers.DeleteProduct)
@@ -57,10 +57,10 @@ func PrivateRoutes(a *fiber.App) {
 
 	// Routes for Collection:
 	v1.Get("/collections", controllers.GetCollections)
-	v1.Post("/collections/create", controllers.CreateCollection)
+	v1.Post("/collections", controllers.CreateCollection)
 
 	// Routes for Menu:
-	v1.Post("/menus/create", controllers.CreateMenu)
+	v1.Post("/menus", controllers.CreateMenu)
 	v1.Get("/menus", controllers.GetMenus)
 	v1.Delete("/menus/:id", controllers.DeleteMenu)
 	v1.Put("/menus/:id", controllers.UpdateMenu)
