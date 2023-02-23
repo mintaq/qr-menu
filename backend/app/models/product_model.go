@@ -13,8 +13,8 @@ type SapoProductResp struct {
 	CreatedOn   time.Time    `json:"created_on" gorm:"default:null"`
 	Alias       string       `json:"alias"`
 	ProductId   uint64       `json:"id"`
-	Images      ImageArray   `json:"images"`
-	Options     OptionArray  `json:"options"`
+	Images      ImageArray   `json:"images" gorm:"default:[]"`
+	Options     OptionArray  `json:"options" gorm:"default:[]"`
 	ProductType string       `json:"product_type" gorm:"default:null"`
 	PublishedOn time.Time    `json:"published_on" gorm:"default:null"`
 	Tags        string       `json:"tags" gorm:"default:null"`
@@ -57,6 +57,13 @@ func (p *CreateProductBody) GetProduct() *Product {
 func (p *CreateProductBody) GetProductNameAlias() string {
 	lowerCaseName := (strings.ToLower((strings.Trim(p.ProductName, " "))))
 	return strings.ReplaceAll(lowerCaseName, " ", "_")
+}
+
+func (p *Product) GetProductNameAlias() string {
+	lowerCaseName := (strings.ToLower((strings.Trim(p.ProductName, " "))))
+	p.Alias = strings.ReplaceAll(lowerCaseName, " ", "_")
+
+	return p.Alias
 }
 
 type VariantArray []Variant
