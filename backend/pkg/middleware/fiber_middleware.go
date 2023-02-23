@@ -12,10 +12,7 @@ import (
 func FiberMiddleware(a *fiber.App) {
 	a.Use(
 		// Add CORS to each route.
-		cors.New(cors.Config{
-			AllowOrigins: "*",
-			AllowHeaders: "Origin, Content-Type, Accept",
-		}),
+		cors.New(),
 		// Add simple logger.
 		logger.New(),
 	)
