@@ -13,8 +13,8 @@ type SapoProductResp struct {
 	CreatedOn   time.Time    `json:"created_on" gorm:"default:null"`
 	Alias       string       `json:"alias"`
 	ProductId   uint64       `json:"id"`
-	Images      ImageArray   `json:"images" gorm:"default:'[]'"`
-	Options     OptionArray  `json:"options" gorm:"default:'[]'"`
+	Images      ImageArray   `json:"images" gorm:"default:null"`
+	Options     OptionArray  `json:"options" gorm:"default:null"`
 	ProductType string       `json:"product_type" gorm:"default:null"`
 	PublishedOn time.Time    `json:"published_on" gorm:"default:null"`
 	Tags        string       `json:"tags" gorm:"default:null"`
