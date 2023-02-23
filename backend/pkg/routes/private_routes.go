@@ -37,6 +37,8 @@ func PrivateRoutes(a *fiber.App) {
 	v1.Post("/store/create", controllers.CreateStore)
 	v1.Get("/stores", controllers.GetStores)
 	v1.Get("/store/:id", controllers.GetStoreById)
+	v1.Get("/store/subdomain/:subdomain", controllers.GetStoreBySubdomain)
+	v1.Put("/store/:id", controllers.UpdateStore)
 
 	// Routes for Theme:
 	v1.Post("/theme/create", controllers.CreateTheme)

@@ -105,3 +105,78 @@ func GetStoreById(c *fiber.Ctx) error {
 		"data":  store,
 	})
 }
+
+func GetStoreBySubdomain(c *fiber.Ctx) error {
+	tokenMetaData, err := utils.ExtractTokenMetadata(c)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	subdomain := c.Params("subdomain", "")
+	store := new(models.Store)
+
+	if tx := database.Database.First(store, "subdomain = ? AND user_id = ?", subdomain, tokenMetaData.UserID); tx.Error != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   tx.Error.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"error": false,
+		"msg":   "success",
+		"data":  store,
+	})
+}
+
+func UpdateStore(c *fiber.Ctx) error {
+	tokenMetaData, err := utils.ExtractTokenMetadata(c)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	storeId, _ := strconv.Atoi(c.Params("id", ""))
+	if storeId <= 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   "id is invalid",
+		})
+	}
+	store := new(models.Store)
+	store.UserId = uint64(tokenMetaData.UserID)
+
+	if err := c.BodyParser(store); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	if err := utils.NewValidator().Struct(store); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   utils.ValidatorErrors(err),
+		})
+	}
+
+	store.ID = uint64(storeId)
+
+	if tx := database.Database.Save(store); tx.Error != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   tx.Error.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"error": false,
+		"msg":   "success",
+		"data":  store,
+	})
+}
