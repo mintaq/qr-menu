@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/hibiken/asynq"
-	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils/sapo"
+	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/sapo"
 )
 
 const (
