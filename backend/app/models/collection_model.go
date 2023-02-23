@@ -66,5 +66,7 @@ func (c *Collection) GetProducts(db *gorm.DB) ([]Product, error) {
 		return nil, tx.Error
 	}
 
+	c.Products = products
+
 	return products, nil
 }
