@@ -38,7 +38,7 @@ func ConnectionURLBuilder(n string) (string, error) {
 	case repository.REDIS_URL:
 		// URL for Redis connection.
 		url = fmt.Sprintf(
-			"%s%s",
+			"%s:%s",
 			os.Getenv("REDIS_HOST"),
 			os.Getenv("REDIS_PORT"),
 		)
@@ -51,7 +51,7 @@ func ConnectionURLBuilder(n string) (string, error) {
 		)
 	case repository.STATIC_PUBLIC_URL:
 		url = fmt.Sprintf(
-			"%s:%s",
+			"%s%s",
 			os.Getenv("SERVER_HOST_STATIC_FILE"),
 			os.Getenv("STATIC_PUBLIC_PATH"),
 		)
