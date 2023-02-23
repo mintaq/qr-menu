@@ -16,6 +16,7 @@ type Collection struct {
 	StoreId        uint64    `json:"store_id" validate:"required"`
 	UserAppTokenId uint64    `json:"user_app_token_id" gorm:"default:null"`
 	Gateway        string    `json:"gateway"`
+	IsFeatured     int       `json:"is_featured" gorm:"default:0"`
 	Products       []Product `json:"products" gorm:"-"`
 }
 

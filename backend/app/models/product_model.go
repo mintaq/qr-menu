@@ -35,6 +35,7 @@ type Product struct {
 	IsChargeTax    int       `json:"is_charge_tax" validate:"eq=0|eq=1"`
 	ProductStatus  string    `json:"product_status"`
 	Gateway        string    `json:"gateway" validate:"required"`
+	Status         string    `json:"status" gorm:"default:'active'"`
 	CreatedAt      time.Time `json:"created_at"`
 	UpdatedAt      time.Time `json:"updated_at"`
 }

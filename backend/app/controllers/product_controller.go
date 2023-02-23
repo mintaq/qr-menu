@@ -115,6 +115,15 @@ func CreateProduct(c *fiber.Ctx) error {
 	}
 
 	if createProductBody.CollectionId != 0 {
+		collection := new(models.Collection)
+
+		if tx := database.Database.First(collection, "collection_id = ? AND store_id = ?", createProductBody.CollectionId, createProductBody.StoreId); tx.Error != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": true,
+				"msg":   tx.Error.Error(),
+			})
+		}
+
 		collect := &models.Collect{
 			CollectionId: createProductBody.CollectionId,
 			ProductId:    createProductBody.ProductId,
@@ -127,6 +136,15 @@ func CreateProduct(c *fiber.Ctx) error {
 				"msg":   tx.Error.Error(),
 			})
 		}
+	}
+
+	menu := new(models.Menu)
+
+	if tx := database.Database.First(menu, "id = ? AND store_id = ?", createProductBody.MenuId, createProductBody.StoreId); tx.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   tx.Error.Error(),
+		})
 	}
 
 	menuProduct := &models.MenuProduct{
