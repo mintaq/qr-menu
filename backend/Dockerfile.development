@@ -3,6 +3,7 @@ FROM golang:1.20-alpine AS builder
 LABEL maintainer="Le Bao Khang <lebaokhang@omegatheme.com> (https://xipat.com/)"
 
 RUN apk add g++ && apk add make
+RUN apk update && apk add gcc make git libc-dev binutils-gold
 
 # Move to working directory (/usr/src/app).
 WORKDIR /usr/src/app

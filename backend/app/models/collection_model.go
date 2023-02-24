@@ -3,9 +3,16 @@ package models
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"errors"
+	"fmt"
+	"os"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/gofiber/fiber/v2"
+	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils"
+	"golang.org/x/exp/slices"
 	"gorm.io/gorm"
 )
 
@@ -16,6 +23,7 @@ type Collection struct {
 	StoreId        uint64    `json:"store_id" validate:"required"`
 	UserAppTokenId uint64    `json:"user_app_token_id" gorm:"default:null"`
 	Gateway        string    `json:"gateway"`
+	IsFeatured     int       `json:"is_featured" gorm:"default:0"`
 	Products       []Product `json:"products" gorm:"-"`
 }
 
@@ -54,9 +62,10 @@ func (p *Collection) GetNameAlias() string {
 
 type CollectionQueryParams struct {
 	PaginationQueryParams
-	Name     string   `query:"name"`
-	StoreId  uint64   `query:"store_id" validate:"required"`
-	Includes []string `query:"includes"`
+	Name       string   `query:"name"`
+	StoreId    uint64   `query:"store_id" validate:"required"`
+	Includes   []string `query:"includes"`
+	IsFeatured int      `query:"is_featured"`
 }
 
 func (c *Collection) GetProducts(db *gorm.DB) ([]Product, error) {
@@ -69,4 +78,57 @@ func (c *Collection) GetProducts(db *gorm.DB) ([]Product, error) {
 	c.Products = products
 
 	return products, nil
+}
+
+func (c *Collection) ExtractDataFromFile(ctx *fiber.Ctx, db *gorm.DB, claims *utils.TokenMetadata, excepts []string) error {
+	form, err := ctx.MultipartForm()
+	if err != nil {
+		return err
+	}
+
+	for key, value := range form.Value {
+		if len(value) == 0 || slices.Contains(excepts, key) {
+			continue
+		}
+
+		switch key {
+		case "store_id":
+			storeIdUint64, _ := strconv.Atoi(value[0])
+			c.StoreId = uint64(storeIdUint64)
+		case "name":
+			c.Name = value[0]
+			c.GetNameAlias()
+		case "description":
+			c.Description = value[0]
+		}
+	}
+
+	if c.StoreId <= 0 {
+		return errors.New("store id is invalid")
+	}
+
+	store := new(Store)
+
+	if tx := db.First(store, "id = ? AND user_id = ?", c.StoreId, claims.UserID); tx.Error != nil {
+		return tx.Error
+	}
+
+	files := form.File["image"]
+	for _, file := range files {
+		if !strings.Contains(file.Header["Content-Type"][0], "image/") {
+			continue
+		}
+
+		fileName := fmt.Sprintf("%s%d", os.Getenv("COLLECTION_IMAGE_PREFIX"), c.CollectionId)
+		filePathSrc, err := utils.CreateImage(file, fileName, store.Subdomain, ctx)
+		if err != nil {
+			return err
+		}
+		c.Image = CollectionImage{
+			Id:  utils.CreateUintId(),
+			Src: filePathSrc,
+		}
+	}
+
+	return nil
 }

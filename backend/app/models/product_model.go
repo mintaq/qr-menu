@@ -3,8 +3,17 @@ package models
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"errors"
+	"fmt"
+	"os"
+	"strconv"
 	"strings"
 	"time"
+
+	"github.com/gofiber/fiber/v2"
+	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils"
+	"golang.org/x/exp/slices"
+	"gorm.io/gorm"
 )
 
 type SapoProductResp struct {
@@ -35,6 +44,7 @@ type Product struct {
 	IsChargeTax    int       `json:"is_charge_tax" validate:"eq=0|eq=1"`
 	ProductStatus  string    `json:"product_status"`
 	Gateway        string    `json:"gateway" validate:"required"`
+	Status         string    `json:"status" gorm:"default:'active'"`
 	CreatedAt      time.Time `json:"created_at"`
 	UpdatedAt      time.Time `json:"updated_at"`
 }
@@ -51,6 +61,8 @@ type ProductDBForm interface {
 }
 
 func (p *CreateProductBody) GetProduct() *Product {
+	test := utils.CreateUintId()
+	fmt.Println(test)
 	return &p.Product
 }
 
@@ -137,4 +149,75 @@ type ProductImage struct {
 	ModifiedOn time.Time `json:"modified_on" gorm:"default:null"`
 	Src        string    `json:"src"`
 	VariantIds []int     `json:"variant_ids" gorm:"default:null"`
+}
+
+func (c *CreateProductBody) ExtractDataFromFile(ctx *fiber.Ctx, db *gorm.DB, claims *utils.TokenMetadata, excepts []string) error {
+	form, err := ctx.MultipartForm()
+	if err != nil {
+		return err
+	}
+
+	for key, value := range form.Value {
+		if len(value) == 0 || slices.Contains(excepts, key) {
+			continue
+		}
+		switch key {
+		case "store_id":
+			storeIdUint64, _ := strconv.Atoi(value[0])
+			c.StoreId = uint64(storeIdUint64)
+		case "name":
+			c.ProductName = value[0]
+			c.GetProductNameAlias()
+		case "content":
+			c.Content = value[0]
+		case "price":
+			c.Price, _ = strconv.ParseFloat(value[0], 64)
+		case "product_type":
+			c.ProductType = value[0]
+		case "collection_id":
+			collectionId, _ := strconv.Atoi(value[0])
+			c.CollectionId = uint64(collectionId)
+		case "is_charge_tax":
+			isChargeTax, _ := strconv.Atoi(value[0])
+			if isChargeTax == 0 || isChargeTax == 1 {
+				c.IsChargeTax = isChargeTax
+			}
+		case "menu_id":
+			menuId, _ := strconv.Atoi(value[0])
+			c.MenuId = uint64(menuId)
+		}
+	}
+
+	if c.StoreId <= 0 {
+		return errors.New("store id is invalid")
+	}
+
+	store := new(Store)
+
+	if tx := db.First(store, "id = ? AND user_id = ?", c.StoreId, claims.UserID); tx.Error != nil {
+		return tx.Error
+	}
+
+	files := form.File["image"]
+	for _, file := range files {
+		if !strings.Contains(file.Header["Content-Type"][0], "image/") {
+			continue
+		}
+
+		fileName := fmt.Sprintf("%s%d", os.Getenv("PRODUCT_IMAGE_PREFIX"), c.ProductId)
+		filePathSrc, err := utils.CreateImage(file, fileName, store.Subdomain, ctx)
+		if err != nil {
+			return err
+		}
+
+		image := &ProductImage{
+			Id:        utils.CreateUintId(),
+			Src:       filePathSrc,
+			ProductId: c.ProductId,
+		}
+
+		c.Images = append(c.Images, *image)
+	}
+
+	return nil
 }
