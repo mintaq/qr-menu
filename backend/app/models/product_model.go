@@ -49,7 +49,7 @@ type Product struct {
 	UpdatedAt      time.Time `json:"updated_at"`
 }
 
-type CreateProductBody struct {
+type ProductFormData struct {
 	Product
 	CollectionId uint64 `json:"collection_id"`
 	MenuId       uint64 `json:"menu_id" validate:"required"`
@@ -60,13 +60,13 @@ type ProductDBForm interface {
 	GetProductNameAlias() string
 }
 
-func (p *CreateProductBody) GetProduct() *Product {
+func (p *ProductFormData) GetProduct() *Product {
 	test := utils.CreateUintId()
 	fmt.Println(test)
 	return &p.Product
 }
 
-func (p *CreateProductBody) GetProductNameAlias() string {
+func (p *ProductFormData) GetProductNameAlias() string {
 	lowerCaseName := (strings.ToLower((strings.Trim(p.ProductName, " "))))
 	return strings.ReplaceAll(lowerCaseName, " ", "_")
 }
@@ -151,7 +151,7 @@ type ProductImage struct {
 	VariantIds []int     `json:"variant_ids" gorm:"default:null"`
 }
 
-func (c *CreateProductBody) ExtractDataFromFile(ctx *fiber.Ctx, db *gorm.DB, claims *utils.TokenMetadata, excepts []string) error {
+func (c *ProductFormData) ExtractDataFromFile(ctx *fiber.Ctx, db *gorm.DB, claims *utils.TokenMetadata, excepts []string) error {
 	form, err := ctx.MultipartForm()
 	if err != nil {
 		return err
@@ -220,4 +220,14 @@ func (c *CreateProductBody) ExtractDataFromFile(ctx *fiber.Ctx, db *gorm.DB, cla
 	}
 
 	return nil
+}
+
+func (p *Product) UpdateDataFromProductForm(pf *Product) {
+	p.ProductName = pf.ProductName
+	p.Alias = pf.Alias
+	p.Content = pf.Content
+	p.Price = pf.Price
+	p.ProductType = pf.ProductType
+	p.IsChargeTax = pf.IsChargeTax
+	p.Images = pf.Images
 }
