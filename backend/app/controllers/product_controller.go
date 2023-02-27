@@ -11,6 +11,7 @@ import (
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/repository"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/platform/database"
+	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
@@ -24,6 +25,98 @@ func CreateProduct(c *fiber.Ctx) error {
 	}
 
 	createProductBody := new(models.CreateProductBody)
+	createProductBody.ExtractDataFromFile(c, database.Database, claims, nil)
+	createProductBody.Gateway = repository.GATEWAY_CUSTOM
+	createProductBody.ProductId = utils.CreateUintId()
+
+	if err := utils.NewValidator().Struct(createProductBody); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   utils.ValidatorErrors(err),
+		})
+	}
+
+	product := createProductBody.GetProduct()
+
+	if err := database.Database.Transaction(func(db *gorm.DB) error {
+		if tx := db.Create(product); tx.Error != nil {
+			return tx.Error
+		}
+
+		if createProductBody.CollectionId != 0 {
+			collection := new(models.Collection)
+
+			if tx := db.First(collection, "collection_id = ? AND store_id = ?", createProductBody.CollectionId, createProductBody.StoreId); tx.Error != nil {
+				return tx.Error
+			}
+
+			collect := &models.Collect{
+				CollectionId: createProductBody.CollectionId,
+				ProductId:    createProductBody.ProductId,
+				StoreId:      createProductBody.StoreId,
+			}
+
+			if tx := db.Create(collect); tx.Error != nil {
+				return tx.Error
+			}
+		}
+
+		menu := new(models.Menu)
+
+		if tx := db.First(menu, "id = ? AND store_id = ?", createProductBody.MenuId, createProductBody.StoreId); tx.Error != nil {
+			return tx.Error
+		}
+
+		menuProduct := &models.MenuProduct{
+			MenuId:    createProductBody.MenuId,
+			ProductId: createProductBody.ProductId,
+			StoreId:   createProductBody.StoreId,
+		}
+
+		if tx := db.Clauses(clause.OnConflict{DoNothing: true}).Create(menuProduct); tx.Error != nil {
+			return tx.Error
+		}
+
+		return nil
+	}); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"error": false,
+		"msg":   "success",
+		"data":  product,
+	})
+}
+
+func UpdateProduct(c *fiber.Ctx) error {
+	claims, err := utils.ExtractTokenMetadata(c)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	productId, _ := strconv.ParseUint(c.Params("product_id"), 10, 64)
+	if productId <= 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   "product id is invalid",
+		})
+	}
+	product := new(models.Product)
+
+	if tx := database.Database.First(product, "product_id = ?", productId); tx.Error != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   tx.Error.Error(),
+		})
+	}
+
 	store := new(models.Store)
 
 	form, err := c.MultipartForm()
@@ -39,35 +132,24 @@ func CreateProduct(c *fiber.Ctx) error {
 			continue
 		}
 		switch key {
-		case "store_id":
-			storeIdUint64, _ := strconv.Atoi(value[0])
-			createProductBody.StoreId = uint64(storeIdUint64)
 		case "name":
-			createProductBody.ProductName = value[0]
+			product.ProductName = value[0]
+			product.GetProductNameAlias()
 		case "content":
-			createProductBody.Content = value[0]
+			product.Content = value[0]
 		case "price":
-			createProductBody.Price, _ = strconv.ParseFloat(value[0], 64)
+			product.Price, _ = strconv.ParseFloat(value[0], 64)
 		case "product_type":
-			createProductBody.ProductType = value[0]
-		case "collection_id":
-			collectionId, _ := strconv.Atoi(value[0])
-			createProductBody.CollectionId = uint64(collectionId)
+			product.ProductType = value[0]
 		case "is_charge_tax":
 			isChargeTax, _ := strconv.Atoi(value[0])
 			if isChargeTax == 0 || isChargeTax == 1 {
-				createProductBody.IsChargeTax = isChargeTax
+				product.IsChargeTax = isChargeTax
 			}
-		case "menu_id":
-			menuId, _ := strconv.Atoi(value[0])
-			createProductBody.MenuId = uint64(menuId)
 		}
 	}
-	createProductBody.Gateway = repository.GATEWAY_CUSTOM
-	createProductBody.ProductId = utils.CreateUintId()
-	createProductBody.Alias = createProductBody.GetProductNameAlias()
 
-	if tx := database.Database.Where("id = ? AND user_id = ?", createProductBody.StoreId, claims.UserID).First(store); tx.Error != nil {
+	if tx := database.Database.Where("id = ? AND user_id = ?", product.StoreId, claims.UserID).First(store); tx.Error != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": true,
 			"msg":   tx.Error.Error(),
@@ -80,7 +162,7 @@ func CreateProduct(c *fiber.Ctx) error {
 			continue
 		}
 
-		fileName := fmt.Sprintf("%s%d", os.Getenv("PRODUCT_IMAGE_PREFIX"), createProductBody.ProductId)
+		fileName := fmt.Sprintf("%s%d", os.Getenv("PRODUCT_IMAGE_PREFIX"), product.ProductId)
 		filePathSrc, err := utils.CreateImage(file, fileName, store.Subdomain, c)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -92,50 +174,13 @@ func CreateProduct(c *fiber.Ctx) error {
 		image := &models.ProductImage{
 			Id:        utils.CreateUintId(),
 			Src:       filePathSrc,
-			ProductId: createProductBody.ProductId,
+			ProductId: product.ProductId,
 		}
 
-		createProductBody.Images = append(createProductBody.Images, *image)
+		product.Images = append(product.Images, *image)
 	}
 
-	if err := utils.NewValidator().Struct(createProductBody); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   utils.ValidatorErrors(err),
-		})
-	}
-
-	product := createProductBody.GetProduct()
-
-	if tx := database.Database.Create(product); tx.Error != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   tx.Error.Error(),
-		})
-	}
-
-	if createProductBody.CollectionId != 0 {
-		collect := &models.Collect{
-			CollectionId: createProductBody.CollectionId,
-			ProductId:    createProductBody.ProductId,
-			StoreId:      createProductBody.StoreId,
-		}
-
-		if tx := database.Database.Create(collect); tx.Error != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": true,
-				"msg":   tx.Error.Error(),
-			})
-		}
-	}
-
-	menuProduct := &models.MenuProduct{
-		MenuId:    createProductBody.MenuId,
-		ProductId: createProductBody.ProductId,
-		StoreId:   createProductBody.StoreId,
-	}
-
-	if tx := database.Database.Clauses(clause.OnConflict{DoNothing: true}).Create(menuProduct); tx.Error != nil {
+	if tx := database.Database.Save(product); tx.Error != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": true,
 			"msg":   tx.Error.Error(),

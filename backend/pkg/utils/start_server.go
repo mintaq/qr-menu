@@ -6,6 +6,7 @@ import (
 	"os/signal"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/joho/godotenv"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/repository"
 )
 
@@ -47,5 +48,18 @@ func StartServer(a *fiber.App) {
 	// Run server.
 	if err := a.Listen(fiberConnURL); err != nil {
 		log.Printf("Oops... Server is not running! Reason: %v", err)
+	}
+}
+
+func SwitchEnv(env string) {
+	filename := "../../.env"
+	switch env {
+	case repository.STAGE_STATUS_DEVELOPMENT:
+		filename = "../../.env.development"
+	case repository.STAGE_STATUS_DOCKER:
+		filename = "../../.env.docker"
+	}
+	if err := godotenv.Load(filename); err != nil {
+		panic(err)
 	}
 }
