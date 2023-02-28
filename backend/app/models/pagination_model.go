@@ -1,6 +1,7 @@
 package models
 
 import (
+	"log"
 	"math"
 	"regexp"
 	"strconv"
@@ -98,8 +99,15 @@ func Paginate(model interface{}, c *fiber.Ctx, query *gorm.DB) (p *Pagination, f
 
 	offset := (page - 1) * limit
 
-	db.Model(&model).Where(query).Count(&totalPages)
-	db.Model(&model).Where(query).Offset(offset).Limit(limit).Count(&totalRows)
+	if tx := db.Model(&model).Where(query).Count(&totalPages); tx.Error != nil {
+		log.Println(tx.Error.Error())
+		return nil, nil
+	}
+
+	if tx := db.Model(&model).Where(query).Offset(offset).Limit(limit).Count(&totalRows); tx.Error != nil {
+		log.Println(tx.Error.Error())
+		return nil, nil
+	}
 
 	pagination := Pagination{
 		Limit:      limit,
