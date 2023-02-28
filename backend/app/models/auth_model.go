@@ -35,6 +35,15 @@ type GoogleClaims struct {
 	jwt.StandardClaims
 }
 
+type SocialClaims struct {
+	Email         string `json:"email" validate:"required"`
+	EmailVerified bool   `json:"email_verified" validate:"required"`
+	FirstName     string `json:"given_name" validate:"required"`
+	LastName      string `json:"family_name" validate:"required"`
+	Picture       string `json:"picture" validate:"required"`
+	jwt.StandardClaims
+}
+
 type CreatePasswordClaims struct {
 	Password string `json:"password" validate:"required,lte=255"`
 }

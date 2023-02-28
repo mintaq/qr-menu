@@ -329,7 +329,6 @@ func GoogleCallback(c *fiber.Ctx) error {
 			"error": true,
 			"msg":   "Couldn't make authentication token",
 		})
-
 	}
 
 	// Return status 200 OK.
@@ -475,4 +474,79 @@ func CreateNewPassword(c *fiber.Ctx) error {
 		"error": false,
 		"msg":   claims.UserID,
 	})
+}
+
+func SocialCallback(c *fiber.Ctx) error {
+	var userData models.SocialClaims
+
+	if err := c.BodyParser(&userData); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	if err := utils.NewValidator().Struct(userData); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   utils.ValidatorErrors(err),
+		})
+	}
+
+	if !userData.VerifyExpiresAt(time.Now().Unix(), true) {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   "token expired",
+		})
+	}
+
+	user := models.User{
+		Email:      userData.Email,
+		FirstName:  userData.FirstName,
+		LastName:   userData.LastName,
+		UserRole:   repository.UserRoleName,
+		UserStatus: repository.ActiveUserStatus,
+		UserImage:  userData.Picture,
+	}
+
+	res := database.Database.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "email"}},
+		DoUpdates: clause.AssignmentColumns([]string{"first_name", "last_name", "user_image"}),
+	}).Create(&user)
+	if res.Error != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": true,
+			"msg":   res.Error.Error(),
+		})
+	}
+
+	// Get role credentials from founded user.
+	credentials, err := utils.GetCredentialsByRole(repository.UserRoleName)
+	if err != nil {
+		// Return status 400 and error message.
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	// create a JWT for OUR app and give it back to the client for future requests
+	tokens, err := utils.GenerateNewTokens(strconv.FormatUint(user.ID, 10), credentials)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   "Couldn't make authentication token",
+		})
+	}
+
+	// Return status 200 OK.
+	return c.JSON(fiber.Map{
+		"error": false,
+		"msg":   nil,
+		"tokens": fiber.Map{
+			"access":  tokens.Access,
+			"refresh": tokens.Refresh,
+		},
+	})
+
 }
