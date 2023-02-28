@@ -33,9 +33,11 @@ func ExtractTokenMetadata(c *fiber.Ctx) (*TokenMetadata, error) {
 	renew := &RenewToken{}
 
 	// Checking received data from JSON body.
-	if err := c.BodyParser(renew); err != nil {
-		// Return, if JSON data is not correct.
-		return nil, err
+	if c.Method() == "POST" {
+		if err := c.BodyParser(renew); err != nil {
+			// Return, if JSON data is not correct.
+			return nil, err
+		}
 	}
 
 	// Setting and checking token and credentials.
