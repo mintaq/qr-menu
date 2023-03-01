@@ -9,7 +9,6 @@ type Table struct {
 	BasicModel
 	StoreId         uint64 `json:"store_id" validate:"required"`
 	Name            string `json:"name" validate:"required" gorm:"default:null"`
-	Role            string `json:"role" validate:"required,lte=25,oneof=main unpublished"`
 	QrCodeSrc       string `json:"qr_code_src" gorm:"default:null"`
 	TableURL        string `json:"table_url" gorm:"default:null"`
 	ColorOnThePrint string `json:"color_on_the_print" validate:"required,lte=100" gorm:"default:null"`
