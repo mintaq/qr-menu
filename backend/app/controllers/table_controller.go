@@ -63,7 +63,7 @@ func CreateTable(c *fiber.Ctx) error {
 
 	if tx := database.Database.Model(table).Where("id = ?", table.ID).Updates(models.Table{
 		QrCodeSrc: qrCodeSrc,
-		TableURL: tableURL,
+		TableURL:  tableURL,
 	}); tx.Error != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": true,
@@ -75,5 +75,75 @@ func CreateTable(c *fiber.Ctx) error {
 		"error": false,
 		"msg":   "success",
 		"data":  table,
+	})
+}
+
+func GetTables(c *fiber.Ctx) error {
+	_, err := utils.ExtractTokenMetadata(c)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	var tables []models.Table
+	query := database.Database.Where("store_id = ?", c.Query("store_id"))
+	tableName := c.Query("name")
+	if tableName != "" {
+		query = query.Where("name LIKE ?", "%"+tableName+"%")
+	}
+
+	pagination, scope := models.Paginate(models.Table{}, c, query)
+
+	if tx := database.Database.Scopes(scope).Find(&tables); tx.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   tx.Error.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"error":      false,
+		"msg":        "success",
+		"data":       tables,
+		"pagination": pagination,
+	})
+}
+
+func DeleteTable(c *fiber.Ctx) error {
+	claims, err := utils.ExtractTokenMetadata(c)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	store := new(models.Store)
+	tableId := c.Params("id")
+	storeId := c.Query("store_id")
+
+	if tx := database.Database.Where("id = ? AND user_id = ?", storeId, claims.UserID).First(store); tx.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   tx.Error.Error(),
+		})
+	}
+
+	tx := database.Database.Where("id = ? AND store_id = ?", tableId, storeId).Delete(&models.Table{})
+	if tx.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   tx.Error.Error(),
+		})
+	}
+
+	rowsAffected := tx.RowsAffected
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"error":        false,
+		"msg":          "success",
+		"row_affected": rowsAffected,
 	})
 }

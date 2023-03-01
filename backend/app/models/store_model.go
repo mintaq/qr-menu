@@ -2,7 +2,6 @@ package models
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"regexp"
 )
@@ -10,16 +9,16 @@ import (
 // User struct to describe Store object.
 type Store struct {
 	BasicModel
-	UserId    uint64 `json:"user_id" validate:"required"`
-	Subdomain string `json:"subdomain" validate:"required"`
+	UserId uint64 `json:"user_id" validate:"required"`
 	StoreUpdatableData
 }
 
 type StoreUpdatableData struct {
-	Name    string `json:"name" validate:"required,lte=255"`
-	Country string `json:"country" validate:"lte=255"`
-	City    string `json:"city" validate:"lte=255"`
-	Address string `json:"address" validate:""`
+	Subdomain string `json:"subdomain" validate:"required"`
+	Name      string `json:"name" validate:"required,lte=255"`
+	Country   string `json:"country" validate:"lte=255"`
+	City      string `json:"city" validate:"lte=255"`
+	Address   string `json:"address" validate:""`
 }
 
 func (s *Store) VerifySubdomain() (bool, error) {
@@ -34,11 +33,13 @@ func (s *Store) UpdateStore(ud *StoreUpdatableData) {
 		s.Country = ud.Country
 	}
 	if ud.City != "" {
-		log.Println(`alo`)
 		s.City = ud.City
 	}
 	if ud.Address != "" {
 		s.Address = ud.Address
+	}
+	if ud.Subdomain != "" {
+		s.Subdomain = ud.Subdomain
 	}
 }
 
