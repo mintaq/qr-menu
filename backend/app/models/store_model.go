@@ -42,6 +42,6 @@ func (s *Store) UpdateStore(ud *StoreUpdatableData) {
 	}
 }
 
-func (s *Store) AddSuffixToSubdomain() {
-	s.Subdomain = fmt.Sprintf("%s.%s", s.Subdomain, os.Getenv("SUBDOMAIN_SUFFIX"))
+func (s *Store) GetSubdomainWithSuffix() string {
+	return fmt.Sprintf("%s.%s", s.Subdomain, os.Getenv("SUBDOMAIN_SUFFIX"))
 }

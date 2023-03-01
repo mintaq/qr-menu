@@ -37,8 +37,6 @@ func CreateStore(c *fiber.Ctx) error {
 		})
 	}
 
-	store.AddSuffixToSubdomain()
-
 	if err := database.Database.Transaction(func(db *gorm.DB) error {
 		if err := db.Create(store).Error; err != nil {
 			return err
