@@ -36,21 +36,6 @@ func CreateStore(c *fiber.Ctx) error {
 		})
 	}
 
-	isVerifySubdomain, err := store.VerifySubdomain()
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
-	}
-
-	if !isVerifySubdomain {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   "subdomain is invalid",
-		})
-	}
-
 	if tx := database.Database.Create(store); tx.Error != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": true,
