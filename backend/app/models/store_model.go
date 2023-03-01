@@ -1,5 +1,7 @@
 package models
 
+import "regexp"
+
 // User struct to describe Store object.
 type Store struct {
 	BasicModel
@@ -9,4 +11,8 @@ type Store struct {
 	Country   string `json:"country" validate:"required,lte=255"`
 	City      string `json:"city" validate:"required,lte=255"`
 	Address   string `json:"address" validate:"required"`
+}
+
+func (s *Store) VerifySubdomain() (bool, error) {
+	return regexp.Match(`^[a-z0-9_-]+\.dingdoong\.io$`, []byte(s.Subdomain))
 }
