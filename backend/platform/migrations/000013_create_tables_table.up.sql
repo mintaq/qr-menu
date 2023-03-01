@@ -2,7 +2,7 @@ CREATE TABLE `qr_menu`.`tables` (
     `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `store_id` BIGINT UNSIGNED NOT NULL,
     `name` VARCHAR(255) NOT NULL,
-    `color_on_the_print` VARCHAR(255) NOT NULL DEFAULT "#FBBC05",
+    `color_on_the_print` VARCHAR(255) NULL DEFAULT "#FBBC05",
     `table_url` TEXT NULL,
     `qr_code_src` TEXT NULL,
     `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

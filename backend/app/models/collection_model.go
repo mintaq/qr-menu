@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/repository"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils"
 	"golang.org/x/exp/slices"
 	"gorm.io/gorm"
@@ -131,4 +132,16 @@ func (c *Collection) ExtractDataFromFile(ctx *fiber.Ctx, db *gorm.DB, claims *ut
 	}
 
 	return nil
+}
+
+func NewFeaturedCollection(storeId uint64) *Collection {
+	collection := new(Collection)
+	collection.Name = "Popular item"
+	collection.GetNameAlias()
+	collection.StoreId = storeId
+	collection.Gateway = repository.GATEWAY_CUSTOM
+	collection.IsFeatured = 1
+	collection.CollectionId = uint64(time.Now().UnixMilli())
+
+	return collection
 }
