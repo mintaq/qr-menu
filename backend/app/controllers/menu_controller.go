@@ -48,16 +48,6 @@ func CreateMenu(c *fiber.Ctx) error {
 		})
 	}
 
-	// menuURL := fmt.Sprintf("https://%s?menu=%d", store.Subdomain, menu.ID)
-	// qrCodeFileName := fmt.Sprintf("%s%d.png", os.Getenv("QR_CODE_MENU_IMAGE_PREFIX"), menu.ID)
-	// qrCodeSrc, err := utils.CreateQRCode(store.Subdomain, menuURL, qrCodeFileName)
-	// if err != nil {
-	// 	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-	// 		"error": true,
-	// 		"msg":   err.Error(),
-	// 	})
-	// }
-
 	if tx := database.Database.Model(menu).Where("id = ?", menu.ID).Updates(models.Menu{}); tx.Error != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": true,
