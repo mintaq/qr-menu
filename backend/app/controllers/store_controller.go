@@ -7,6 +7,7 @@ import (
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/app/models"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/platform/database"
+	"gorm.io/gorm"
 )
 
 func CreateStore(c *fiber.Ctx) error {
@@ -36,10 +37,27 @@ func CreateStore(c *fiber.Ctx) error {
 		})
 	}
 
-	if tx := database.Database.Create(store); tx.Error != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+	store.AddSuffixToSubdomain()
+
+	if err := database.Database.Transaction(func(db *gorm.DB) error {
+		if err := db.Create(store).Error; err != nil {
+			return err
+		}
+
+		collection := models.NewFeaturedCollection(store.ID)
+		if err := db.Save(collection).Error; err != nil {
+			return err
+		}
+
+		menu := models.NewDefaultMenu(store.ID)
+		if err := db.Save(menu).Error; err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": true,
-			"msg":   tx.Error.Error(),
+			"msg":   err.Error(),
 		})
 	}
 
@@ -149,16 +167,17 @@ func UpdateStore(c *fiber.Ctx) error {
 		})
 	}
 	store := new(models.Store)
+	updateData := new(models.StoreUpdatableData)
 	store.UserId = uint64(tokenMetaData.UserID)
 
-	if err := c.BodyParser(store); err != nil {
+	if err := c.BodyParser(updateData); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": true,
 			"msg":   err.Error(),
 		})
 	}
 
-	if err := utils.NewValidator().Struct(store); err != nil {
+	if err := utils.NewValidator().Struct(updateData); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": true,
 			"msg":   utils.ValidatorErrors(err),
@@ -166,6 +185,7 @@ func UpdateStore(c *fiber.Ctx) error {
 	}
 
 	store.ID = uint64(storeId)
+	store.UpdateStore(updateData)
 
 	if tx := database.Database.Save(store); tx.Error != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{

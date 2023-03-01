@@ -1,10 +1,19 @@
 package models
 
+import "gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/repository"
+
 type Menu struct {
 	BasicModel
-	StoreId         uint64 `json:"store_id" validate:"required"`
-	Name            string `json:"name" validate:"required" gorm:"default:null"`
-	QrCodeSrc       string `json:"qr_code_src" gorm:"default:null"`
-	MenuURL         string `json:"menu_url" gorm:"default:null"`
-	ColorOnThePrint string `json:"color_on_the_print" validate:"required,lte=100" gorm:"default:null"`
+	StoreId uint64 `json:"store_id" validate:"required"`
+	Name    string `json:"name" validate:"required" gorm:"default:null"`
+	Role    string `json:"role" validate:"required,lte=25,oneof=main unpublished"`
+}
+
+func NewDefaultMenu(storeId uint64) *Menu {
+	menu := new(Menu)
+	menu.StoreId = storeId
+	menu.Name = "Default"
+	menu.Role = repository.MENU_ROLE_MAIN
+
+	return menu
 }
