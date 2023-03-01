@@ -1,9 +1,6 @@
 package controllers
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/gofiber/fiber/v2"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/app/models"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils"
@@ -51,20 +48,17 @@ func CreateMenu(c *fiber.Ctx) error {
 		})
 	}
 
-	menuURL := fmt.Sprintf("https://%s?menu=%d", store.Subdomain, menu.ID)
-	qrCodeFileName := fmt.Sprintf("%s%d.png", os.Getenv("QR_CODE_MENU_IMAGE_PREFIX"), menu.ID)
-	qrCodeSrc, err := utils.CreateQRCode(store.Subdomain, menuURL, qrCodeFileName)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
-	}
+	// menuURL := fmt.Sprintf("https://%s?menu=%d", store.Subdomain, menu.ID)
+	// qrCodeFileName := fmt.Sprintf("%s%d.png", os.Getenv("QR_CODE_MENU_IMAGE_PREFIX"), menu.ID)
+	// qrCodeSrc, err := utils.CreateQRCode(store.Subdomain, menuURL, qrCodeFileName)
+	// if err != nil {
+	// 	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+	// 		"error": true,
+	// 		"msg":   err.Error(),
+	// 	})
+	// }
 
-	if tx := database.Database.Model(menu).Where("id = ?", menu.ID).Updates(models.Menu{
-		QrCodeSrc: qrCodeSrc,
-		MenuURL:   menuURL,
-	}); tx.Error != nil {
+	if tx := database.Database.Model(menu).Where("id = ?", menu.ID).Updates(models.Menu{}); tx.Error != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": true,
 			"msg":   tx.Error.Error(),
@@ -185,8 +179,7 @@ func UpdateMenu(c *fiber.Ctx) error {
 	}
 
 	tx := database.Database.Model(menu).Where("id = ? ", menuId).Updates(models.Menu{
-		Name:            menu.Name,
-		ColorOnThePrint: menu.ColorOnThePrint,
+		Name: menu.Name,
 	})
 	if tx.Error != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
