@@ -43,6 +43,7 @@ func PrivateRoutes(a *fiber.App) {
 	// Routes for Theme:
 	v1.Post("/themes", controllers.CreateTheme)
 	v1.Get("/themes", controllers.GetThemes)
+	v1.Get("/themes/main", controllers.GetMainTheme)
 	v1.Put("/themes/:id", controllers.UpdateTheme)
 
 	// Routes for App:
