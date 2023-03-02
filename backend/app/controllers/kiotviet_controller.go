@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/app/models"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils"
+	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils/kiotviet"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/platform/database"
 )
 
@@ -60,9 +61,17 @@ func CreateKiotvietUser(c *fiber.Ctx) error {
 }
 
 func SyncKiotvietProducts(c *fiber.Ctx) error {
-	_, err := utils.ExtractTokenMetadata(c)
+	claims, err := utils.ExtractTokenMetadata(c)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	result, err := kiotviet.ConnectToken(uint64(claims.UserID))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": true,
 			"msg":   err.Error(),
 		})
@@ -71,6 +80,6 @@ func SyncKiotvietProducts(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"error": false,
 		"msg":   "success",
-		"data":  "122",
+		"data":  result,
 	})
 }

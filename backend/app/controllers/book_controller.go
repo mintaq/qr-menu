@@ -39,7 +39,7 @@ func GetBooks(c *fiber.Ctx) error {
 		// Return, if books not found.
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": true,
-			"msg":   "books were not found",
+			"msg":   "books were not found 444",
 			"count": 0,
 			"books": nil,
 		})
@@ -478,7 +478,7 @@ func Test(c *fiber.Ctx) error {
 
 	file := filePath + "/qr2.png"
 
-	err = qrcode.WriteColorFile("https://dingdoong.io", qrcode.Highest, 256, color.Transparent, color.White, file)
+	err = qrcode.WriteColorFile("https://dingdoong.io", qrcode.Highest, 256, color.Black, color.White, file)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": true,

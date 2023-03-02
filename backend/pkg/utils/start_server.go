@@ -6,6 +6,8 @@ import (
 	"os/signal"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/joho/godotenv"
+	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/repository"
 )
 
 // StartServerWithGracefulShutdown function for starting server with a graceful shutdown.
@@ -28,7 +30,7 @@ func StartServerWithGracefulShutdown(a *fiber.App) {
 	}()
 
 	// Build Fiber connection URL.
-	fiberConnURL, _ := ConnectionURLBuilder("fiber")
+	fiberConnURL, _ := ConnectionURLBuilder(repository.FIBER_URL)
 
 	// Run server.
 	if err := a.Listen(fiberConnURL); err != nil {
@@ -41,10 +43,23 @@ func StartServerWithGracefulShutdown(a *fiber.App) {
 // StartServer func for starting a simple server.
 func StartServer(a *fiber.App) {
 	// Build Fiber connection URL.
-	fiberConnURL, _ := ConnectionURLBuilder("fiber")
+	fiberConnURL, _ := ConnectionURLBuilder(repository.FIBER_URL)
 
 	// Run server.
 	if err := a.Listen(fiberConnURL); err != nil {
 		log.Printf("Oops... Server is not running! Reason: %v", err)
+	}
+}
+
+func SwitchEnv(env string) {
+	filename := "../../.env"
+	switch env {
+	case repository.STAGE_STATUS_DEVELOPMENT:
+		filename = "../../.env.development"
+	case repository.STAGE_STATUS_DOCKER:
+		filename = "../../.env.docker"
+	}
+	if err := godotenv.Load(filename); err != nil {
+		panic(err)
 	}
 }

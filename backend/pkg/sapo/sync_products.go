@@ -13,16 +13,16 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func SyncProducts(page, limit int, storeDomain string) (int, error) {
+func SyncProducts(page, limit int, sapoDomain string, storeId uint64) (int, error) {
 	log.Println("SyncProducts: Processing...")
 
 	userAppToken := new(models.UserAppToken)
 
-	if tx := database.Database.First(userAppToken, "store_domain = ?", storeDomain); tx.Error != nil {
+	if tx := database.Database.First(userAppToken, "store_domain = ?", sapoDomain); tx.Error != nil {
 		return 0, tx.Error
 	}
 
-	requestURI := fmt.Sprintf("https://%s/admin/products.json?page=%d&limit=%d", storeDomain, page, limit)
+	requestURI := fmt.Sprintf("https://%s/admin/products.json?page=%d&limit=%d", sapoDomain, page, limit)
 	log.Println(requestURI)
 	req, err := http.NewRequest(http.MethodGet, requestURI, http.NoBody)
 	if err != nil {
@@ -61,12 +61,14 @@ func SyncProducts(page, limit int, storeDomain string) (int, error) {
 		product.Gateway = repository.GATEWAY_SAPO
 		product.SapoProductResp = respProducts.Products[i]
 		product.ProductId = respProducts.Products[i].ProductId
+		product.StoreId = storeId
+		product.ProductStatus = repository.PRODUCT_STATUS_ACTIVE
 
 		products = append(products, product)
 	}
 
 	if err := database.Database.Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "user_app_token_id"}, {Name: "product_id"}},
+		Columns:   []clause.Column{{Name: "store_id"}, {Name: "product_id"}},
 		DoUpdates: clause.AssignmentColumns([]string{"content", "summary", "alias", "images", "options", "product_type", "tags", "product_name", "modified_on", "variants", "vendor"}),
 	}).Create(&products).Error; err != nil {
 		return 0, err

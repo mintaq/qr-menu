@@ -1,0 +1,64 @@
+version: "3.9"
+
+networks:
+  backend:
+
+services:
+  digital-menu-database:
+    image: mariadb:10.9.5
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=qr_menu
+    volumes:
+      # - ./mariadb/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+      - service-mariadb:/var/lib/mysql
+    command: ["--max_connections=1000"]
+    ports:
+      - 127.0.0.1:33066:3306
+    networks:
+      - backend
+
+  digital-menu-redis:
+    image: redis:alpine
+    restart: unless-stopped
+    volumes:
+      - redis:/data
+    ports:
+      - 63799:6379
+    networks:
+      - backend
+
+  digital-menu-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.production
+    restart: unless-stopped
+    ports:
+      - 127.0.0.1:5009:5008
+    volumes:
+      - ./static:/static
+    networks:
+      - backend
+    depends_on:
+      - digital-menu-database
+
+  digital-menu-phpmyadmin:
+    image: phpmyadmin
+    restart: always
+    ports:
+      - 127.0.0.1:8081:80
+    environment:
+      - PMA_ARBITRARY=1
+      - PMA_HOST=digital-menu-database
+      - PMA_PORT=3306
+      - PMA_USER=root
+      - PMA_PASSWORD=root
+    networks:
+      - backend
+    depends_on:
+      - digital-menu-database
+
+volumes:
+  service-mariadb:
+  redis:

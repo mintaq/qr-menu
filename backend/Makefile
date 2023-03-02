@@ -1,9 +1,10 @@
+include $(PWD)/.env
 .PHONY: clean critic security lint test build run
 
 APP_NAME = apiserver
 BUILD_DIR = $(PWD)/build
 MIGRATIONS_FOLDER = $(PWD)/platform/migrations
-DATABASE_URL = mysql://root:@tcp(127.0.0.1:3306)/qr_menu
+DATABASE_URL = mysql://$(DB_USER):$(DB_PASSWORD)@tcp($(DB_HOST):$(DB_PORT))/$(DB_NAME)
 
 clean:
 	rm -rf ./build
@@ -26,6 +27,9 @@ build: test
 
 run: swag build
 	$(BUILD_DIR)/$(APP_NAME)
+
+run.dev: 
+	fiber dev main.go
 
 migrate.up:
 	migrate -path $(MIGRATIONS_FOLDER) -database "$(DATABASE_URL)" up

@@ -129,3 +129,42 @@ REDIS_DB_NUMBER=0
 ## ⚠️ License
 
 Apache 2.0 &copy; [Vic Shóstak](https://shostak.dev/) & [True web artisans](https://1wa.co/).
+
+## Docker compose
+
+```
+cp .env.docker .env
+Production
+
+docker compose -f docker-compose-production.yml build
+docker compose -f docker-compose-production.yml up -d
+
+Local
+
+docker compose build
+docker compose up -d
+```
+
+## SSH docker container
+
+```
+docker ps
+
+SSH container
+docker exec -it 7e04ca162a0c /bin/sh
+
+Migrate
+make migrate.up
+make migrate.up.1
+migrate -path platform/migrations -database "mysql://root:root@tcp(digital-menu-database:3306)/qr_menu" u
+p
+
+Rollback
+make migrate.down
+make migrate.down.1
+migrate -path platform/migrations -database "mysql://root:root@tcp(digital-menu-database:3306)/qr_menu" down
+```
+
+## PHPMyAdmin
+
+http://localhost:8081

@@ -10,3 +10,7 @@ tmp/
 
 # Environment variables
 .env
+.env.production
+.env.development
+.env.staging
+.env*.local

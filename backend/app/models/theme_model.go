@@ -8,12 +8,13 @@ import (
 type Theme struct {
 	BasicModel
 	StoreId    uint64      `json:"store_id" validate:"required"`
-	CoverImage string      `json:"cover_image"`
+	CoverImage string      `json:"cover_image" gorm:"default:null"`
 	Colors     ThemeColors `json:"colors" validate:"required,json"`
+	Role       string      `json:"role" validate:"required,lte=25,oneof=main unpublished"`
 }
 
 type ThemeColors struct {
-	Button       string `json:"button" validate:"required"`
+	ThemeColor   string `json:"theme_color" validate:"required"`
 	CategoryText string `json:"category_text" validate:"required"`
 	ProductText  string `json:"product_text" validate:"required"`
 	Background   string `json:"background" validate:"required"`

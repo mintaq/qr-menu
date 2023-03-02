@@ -18,11 +18,26 @@ type TokenMetadata struct {
 	Expires     int64
 }
 
+type RenewToken struct {
+	RefreshToken string `json:"refresh_token"`
+}
+
 // ExtractTokenMetadata func to extract metadata from JWT.
 func ExtractTokenMetadata(c *fiber.Ctx) (*TokenMetadata, error) {
 	token, err := verifyToken(c)
 	if err != nil {
 		return nil, err
+	}
+
+	// Create a new renew refresh token struct.
+	renew := &RenewToken{}
+
+	// Checking received data from JSON body.
+	if c.Method() == "POST" {
+		if err := c.BodyParser(renew); err != nil {
+			// Return, if JSON data is not correct.
+			return nil, err
+		}
 	}
 
 	// Setting and checking token and credentials.
@@ -34,13 +49,22 @@ func ExtractTokenMetadata(c *fiber.Ctx) (*TokenMetadata, error) {
 			return nil, err
 		}
 
-		// Expires time.
-		expires := int64(claims["expires"].(float64))
+		now := time.Now().Unix()
 
-		if expires < time.Now().Unix() {
+		if renew.RefreshToken != "" {
+			expiresRefreshToken, err := ParseRefreshToken(renew.RefreshToken)
+			if err != nil {
+				return nil, err
+			}
+			if now >= expiresRefreshToken {
+				return nil, errors.New("refresh token is expired")
+			}
+		} else if claims.VerifyExpiresAt(now, true) {
 			return nil, errors.New("token is expired")
 		}
 
+		// Expires time.
+		expires := int64(claims["expires"].(float64))
 		// User credentials.
 		credentials := map[string]bool{
 			"book:create": claims["book:create"].(bool),
