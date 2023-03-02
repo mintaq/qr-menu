@@ -3,7 +3,6 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -110,8 +109,6 @@ func CreateTheme(c *fiber.Ctx) error {
 				"msg":   err.Error(),
 			})
 		}
-
-		log.Println(filePathSrc)
 
 		if tx := database.Database.Model(theme).Where("id = ?", theme.ID).Update("cover_image", filePathSrc); tx.Error != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
