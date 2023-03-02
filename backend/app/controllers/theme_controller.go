@@ -3,7 +3,6 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -97,7 +96,7 @@ func CreateTheme(c *fiber.Ctx) error {
 	}
 
 	// Loop through files:
-	for _, file := range form.File["file"] {
+	for _, file := range form.File["images"] {
 		if !strings.Contains(file.Header["Content-Type"][0], "image/") {
 			continue
 		}
@@ -110,8 +109,6 @@ func CreateTheme(c *fiber.Ctx) error {
 				"msg":   err.Error(),
 			})
 		}
-
-		log.Println(filePathSrc)
 
 		if tx := database.Database.Model(theme).Where("id = ?", theme.ID).Update("cover_image", filePathSrc); tx.Error != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -158,6 +155,39 @@ func GetThemes(c *fiber.Ctx) error {
 		"error": false,
 		"msg":   "success",
 		"data":  themes,
+	})
+}
+
+func GetMainTheme(c *fiber.Ctx) error {
+	_, err := utils.ExtractTokenMetadata(c)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	storeId := c.Query("store_id")
+	if storeId == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   "store_id is missing from params",
+		})
+	}
+
+	theme := new(models.Theme)
+
+	if tx := database.Database.First(theme, "store_id = ? AND role = 'main'", storeId); tx.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   tx.Error.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"error": false,
+		"msg":   "success",
+		"data":  theme,
 	})
 }
 

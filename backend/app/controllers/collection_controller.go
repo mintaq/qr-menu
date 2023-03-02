@@ -78,6 +78,57 @@ func GetCollections(c *fiber.Ctx) error {
 	})
 }
 
+func GetFeaturedCollection(c *fiber.Ctx) error {
+	claims, err := utils.ExtractTokenMetadata(c)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	queryParams := new(models.CollectionQueryParams)
+
+	if err := c.QueryParser(queryParams); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	store := new(models.Store)
+	if tx := database.Database.Where("id = ? AND user_id = ?", queryParams.StoreId, claims.UserID).First(store); tx.Error != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   tx.Error.Error(),
+		})
+	}
+
+	collection := new(models.Collection)
+	if tx := database.Database.First(collection, "store_id = ? AND is_featured = 1", store.ID); tx.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   tx.Error.Error(),
+		})
+	}
+
+	if !slices.Contains(queryParams.Includes, "products") {
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+			"error": false,
+			"msg":   "success",
+			"data":  collection,
+		})
+	}
+
+	_, _ = collection.GetProducts(database.Database)
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"error": false,
+		"msg":   "success",
+		"data":  collection,
+	})
+}
+
 func CreateCollection(c *fiber.Ctx) error {
 	claims, err := utils.ExtractTokenMetadata(c)
 	if err != nil {
