@@ -95,6 +95,38 @@ func GetMenus(c *fiber.Ctx) error {
 	})
 }
 
+func GetMainMenu(c *fiber.Ctx) error {
+	_, err := utils.ExtractTokenMetadata(c)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	storeId := c.Query("store_id")
+	if storeId == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   "store_id is missing from params",
+		})
+	}
+
+	menu := new(models.Menu)
+	if tx := database.Database.First(menu, "store_id = ? AND role = 'main'", storeId); tx.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   tx.Error.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"error": false,
+		"msg":   "success",
+		"data":  menu,
+	})
+}
+
 func DeleteMenu(c *fiber.Ctx) error {
 	claims, err := utils.ExtractTokenMetadata(c)
 	if err != nil {
