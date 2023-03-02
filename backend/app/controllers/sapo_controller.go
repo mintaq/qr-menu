@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"regexp"
 	"strconv"
 	"time"
@@ -66,10 +67,7 @@ func GetSapoAccessToken(c *fiber.Ctx) error {
 
 	resp, err := http.Post(uri, "application/json", bytes.NewBuffer(body)) // #nosec
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
+		return c.Status(fiber.StatusInternalServerError).JSON(models.NewErrorResponse(err.Error()))
 	}
 
 	defer resp.Body.Close()
@@ -84,10 +82,7 @@ func GetSapoAccessToken(c *fiber.Ctx) error {
 	if resp.StatusCode == http.StatusOK {
 		err := json.NewDecoder(resp.Body).Decode(accessToken)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": true,
-				"msg":   err.Error(),
-			})
+			return c.Status(fiber.StatusInternalServerError).JSON(models.NewErrorResponse(err.Error()))
 		}
 	}
 
@@ -96,17 +91,11 @@ func GetSapoAccessToken(c *fiber.Ctx) error {
 	userAppToken.AppId = app.ID
 	userAppToken.StoreDomain = store
 	userAppToken.AccessToken = accessToken.AccessToken
-	if tx := database.Database.Create(userAppToken); tx.Error != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": true,
-			"msg":   tx.Error.Error(),
-		})
+	if err := database.Database.Create(userAppToken).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(models.NewErrorResponse(err.Error()))
 	}
 
-	return c.JSON(fiber.Map{
-		"error": false,
-		"msg":   "success",
-	})
+	return c.Redirect(os.Getenv("REDIRECT_URL_AFTER_PARTNER_AUTHENTICATION"))
 }
 
 // GetSapoAuthURL method to get Sapo authenticate URL
@@ -152,7 +141,10 @@ func GetSapoAuthURL(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{
 		"error": false,
-		"msg":   url,
+		"msg":   "success",
+		"data": map[string]string{
+			"url": url,
+		},
 	})
 }
 

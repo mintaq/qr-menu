@@ -548,5 +548,4 @@ func SocialCallback(c *fiber.Ctx) error {
 			"refresh": tokens.Refresh,
 		},
 	})
-
 }

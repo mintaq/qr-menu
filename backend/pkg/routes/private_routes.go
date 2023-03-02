@@ -23,6 +23,7 @@ func PrivateRoutes(a *fiber.App) {
 	// Routes for User:
 	v1.Post("/users/sign/out", controllers.UserSignOut) // de-authorization user
 	v1.Post("/users/create-password", controllers.CreateNewPassword)
+	v1.Get("/users/profile", controllers.GetUserProfile)
 
 	// Routes for Kiotviet:
 	v1.Post("/kiotviet/create-user", controllers.CreateKiotvietUser)
@@ -72,4 +73,7 @@ func PrivateRoutes(a *fiber.App) {
 	v1.Post("/tables", controllers.CreateTable)
 	v1.Get("/tables", controllers.GetTables)
 	v1.Delete("/tables/:id", controllers.DeleteTable)
+
+	// Route for Collect:
+	v1.Post("/collects", controllers.CreateCollect)
 }
