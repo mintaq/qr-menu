@@ -1,13 +1,16 @@
 package controllers
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/gofiber/fiber/v2"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/app/models"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/platform/database"
 )
 
-func CreateMenu(c *fiber.Ctx) error {
+func CreateTable(c *fiber.Ctx) error {
 	claims, err := utils.ExtractTokenMetadata(c)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -16,16 +19,16 @@ func CreateMenu(c *fiber.Ctx) error {
 		})
 	}
 
-	menu := new(models.Menu)
+	table := new(models.Table)
 
-	if err := c.BodyParser(menu); err != nil {
+	if err := c.BodyParser(table); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": true,
 			"msg":   err.Error(),
 		})
 	}
 
-	if err := utils.NewValidator().Struct(menu); err != nil {
+	if err := utils.NewValidator().Struct(table); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": true,
 			"msg":   utils.ValidatorErrors(err),
@@ -34,21 +37,34 @@ func CreateMenu(c *fiber.Ctx) error {
 
 	store := new(models.Store)
 
-	if tx := database.Database.Where("id = ? AND user_id = ?", menu.StoreId, claims.UserID).First(store); tx.Error != nil {
+	if tx := database.Database.Where("id = ? AND user_id = ?", table.StoreId, claims.UserID).First(store); tx.Error != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": true,
 			"msg":   tx.Error.Error(),
 		})
 	}
 
-	if tx := database.Database.Create(menu); tx.Error != nil {
+	if tx := database.Database.Create(table); tx.Error != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": true,
 			"msg":   tx.Error.Error(),
 		})
 	}
 
-	if tx := database.Database.Model(menu).Where("id = ?", menu.ID).Updates(models.Menu{}); tx.Error != nil {
+	tableURL := fmt.Sprintf("https://%s?table=%d", store.GetSubdomainWithSuffix(), table.ID)
+	qrCodeFileName := fmt.Sprintf("%s%d.png", os.Getenv("QR_CODE_TABLE_IMAGE_PREFIX"), table.ID)
+	qrCodeSrc, err := utils.CreateQRCode(store.Subdomain, tableURL, qrCodeFileName)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	if tx := database.Database.Model(table).Where("id = ?", table.ID).Updates(models.Table{
+		QrCodeSrc: qrCodeSrc,
+		TableURL:  tableURL,
+	}); tx.Error != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": true,
 			"msg":   tx.Error.Error(),
@@ -58,11 +74,11 @@ func CreateMenu(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"error": false,
 		"msg":   "success",
-		"data":  menu,
+		"data":  table,
 	})
 }
 
-func GetMenus(c *fiber.Ctx) error {
+func GetTables(c *fiber.Ctx) error {
 	_, err := utils.ExtractTokenMetadata(c)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -71,16 +87,16 @@ func GetMenus(c *fiber.Ctx) error {
 		})
 	}
 
-	var menus []models.Menu
+	var tables []models.Table
 	query := database.Database.Where("store_id = ?", c.Query("store_id"))
-	menuName := c.Query("name")
-	if menuName != "" {
-		query = query.Where("name LIKE ?", "%"+menuName+"%")
+	tableName := c.Query("name")
+	if tableName != "" {
+		query = query.Where("name LIKE ?", "%"+tableName+"%")
 	}
 
-	pagination, scope := models.Paginate(models.Menu{}, c, query)
+	pagination, scope := models.Paginate(models.Table{}, c, query)
 
-	if tx := database.Database.Scopes(scope).Find(&menus); tx.Error != nil {
+	if tx := database.Database.Scopes(scope).Find(&tables); tx.Error != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": true,
 			"msg":   tx.Error.Error(),
@@ -90,12 +106,12 @@ func GetMenus(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"error":      false,
 		"msg":        "success",
-		"data":       menus,
+		"data":       tables,
 		"pagination": pagination,
 	})
 }
 
-func DeleteMenu(c *fiber.Ctx) error {
+func DeleteTable(c *fiber.Ctx) error {
 	claims, err := utils.ExtractTokenMetadata(c)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -105,7 +121,7 @@ func DeleteMenu(c *fiber.Ctx) error {
 	}
 
 	store := new(models.Store)
-	menuId := c.Params("id")
+	tableId := c.Params("id")
 	storeId := c.Query("store_id")
 
 	if tx := database.Database.Where("id = ? AND user_id = ?", storeId, claims.UserID).First(store); tx.Error != nil {
@@ -115,62 +131,7 @@ func DeleteMenu(c *fiber.Ctx) error {
 		})
 	}
 
-	tx := database.Database.Where("id = ? AND store_id = ?", menuId, storeId).Delete(&models.Menu{})
-	if tx.Error != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   tx.Error.Error(),
-		})
-	}
-
-	rowsAffected := tx.RowsAffected
-
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"error":        false,
-		"msg":          "success",
-		"row_affected": rowsAffected,
-	})
-}
-
-func UpdateMenu(c *fiber.Ctx) error {
-	claims, err := utils.ExtractTokenMetadata(c)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
-	}
-
-	store := new(models.Store)
-	menuId := c.Params("id")
-
-	menu := new(models.Menu)
-	storeId := c.Query("store_id")
-
-	if err := c.BodyParser(menu); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
-	}
-
-	if err := utils.NewValidator().Struct(menu); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   utils.ValidatorErrors(err),
-		})
-	}
-
-	if tx := database.Database.Where("id = ? AND user_id = ?", storeId, claims.UserID).First(store); tx.Error != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   tx.Error.Error(),
-		})
-	}
-
-	tx := database.Database.Model(menu).Where("id = ? ", menuId).Updates(models.Menu{
-		Name: menu.Name,
-	})
+	tx := database.Database.Where("id = ? AND store_id = ?", tableId, storeId).Delete(&models.Table{})
 	if tx.Error != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": true,

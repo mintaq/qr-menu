@@ -37,8 +37,6 @@ func CreateStore(c *fiber.Ctx) error {
 		})
 	}
 
-	store.AddSuffixToSubdomain()
-
 	if err := database.Database.Transaction(func(db *gorm.DB) error {
 		if err := db.Create(store).Error; err != nil {
 			return err
@@ -167,6 +165,15 @@ func UpdateStore(c *fiber.Ctx) error {
 		})
 	}
 	store := new(models.Store)
+	store.ID = uint64(storeId)
+
+	if err := database.Database.First(store, "id = ?", storeId).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
 	updateData := new(models.StoreUpdatableData)
 	store.UserId = uint64(tokenMetaData.UserID)
 
@@ -184,7 +191,6 @@ func UpdateStore(c *fiber.Ctx) error {
 		})
 	}
 
-	store.ID = uint64(storeId)
 	store.UpdateStore(updateData)
 
 	if tx := database.Database.Save(store); tx.Error != nil {
