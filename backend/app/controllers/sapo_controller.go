@@ -21,14 +21,22 @@ import (
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/platform/database"
 )
 
-// GetSapoAccessToken method to get Sapo access token
-// @Description Get Sapo user access token
-// @Summary get access token
-// @Tags Sapo
-// @Accept json
-// @Produce json
-// @Success 200 {string} token
-// @Router /v1/sapo/get-token [get]
+/**
+
+@Summary Get Sapo Access Token
+@Description Get Sapo Access Token with given code, store and user_id
+@Tags Access Tokens
+@Accept json
+@Produce json
+@Param code query string true "Authorization code"
+@Param store query string true "Store domain"
+@Param user_id query string true "User ID"
+@Success 200 {object} fiber.Map
+@Failure 400 {object} fiber.Map
+@Failure 404 {object} fiber.Map
+@Failure 500 {object} fiber.Map
+@Router /v1/sapo-access-token [get]
+*/
 func GetSapoAccessToken(c *fiber.Ctx) error {
 	code := c.Query("code")
 	store := c.Query("store")

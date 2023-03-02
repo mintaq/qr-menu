@@ -84,6 +84,13 @@ definitions:
       src:
         type: string
     type: object
+  models.ErrorResponse:
+    properties:
+      error:
+        type: boolean
+      msg:
+        type: string
+    type: object
   models.Option:
     properties:
       id:
@@ -521,6 +528,42 @@ paths:
       summary: get all exists books
       tags:
       - Books
+  /v1/collects:
+    post:
+      consumes:
+      - application/json
+      description: Create a new collect with given parameters.
+      parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Store ID
+        in: query
+        name: store_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create Collect
+      tags:
+      - Collects
   /v1/kiotviet/create-user:
     post:
       consumes:
@@ -579,21 +622,6 @@ paths:
           schema:
             type: string
       summary: get authenticate URL
-      tags:
-      - Sapo
-  /v1/sapo/get-token:
-    get:
-      consumes:
-      - application/json
-      description: Get Sapo user access token
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-      summary: get access token
       tags:
       - Sapo
   /v1/token/renew:
