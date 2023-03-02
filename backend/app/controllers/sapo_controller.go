@@ -152,7 +152,10 @@ func GetSapoAuthURL(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{
 		"error": false,
-		"msg":   url,
+		"msg":   "success",
+		"data": map[string]string{
+			"url": url,
+		},
 	})
 }
 

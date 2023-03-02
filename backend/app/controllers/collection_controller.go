@@ -78,6 +78,18 @@ func GetCollections(c *fiber.Ctx) error {
 	})
 }
 
+// @Summary Retrieves the featured collection for a user's store.
+// @Description This endpoint retrieves the featured collection for a user's store based on the provided query parameters. The query parameters can include an "includes" parameter to include the collection's products.
+// @Tags Collections
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Bearer {token}"
+// @Param store_id query int true "ID of the store to retrieve the featured collection for"
+// @Param includes query []string false "Array of strings specifying what data to include in the response. Valid values are: products."
+// @Success 200 {object} models.Collection "success"
+// @Failure 400 {object} models.Response "error"
+// @Failure 500 {object} models.Response "error"
+// @Router /collections/featured [get]
 func GetFeaturedCollection(c *fiber.Ctx) error {
 	claims, err := utils.ExtractTokenMetadata(c)
 	if err != nil {
@@ -129,43 +141,38 @@ func GetFeaturedCollection(c *fiber.Ctx) error {
 	})
 }
 
+// @Summary Creates a new collection for a user's store.
+// @Description This endpoint creates a new collection for a user's store based on the data provided in a file sent in the request body. The file should be in CSV or JSON format and contain the necessary data for creating a collection. The user must be authenticated and authorized to create collections for the specified store.
+// @Tags Collections
+// @Accept multipart/form-data
+// @Produce json
+// @Param Authorization header string true "Bearer {token}"
+// @Param file formData file true "CSV or JSON file containing the collection data"
+// @Success 200 {object} models.Collection "success"
+// @Failure 400 {object} models.Response "error"
+// @Failure 500 {object} models.Response "error"
+// @Router /collections [post]
 func CreateCollection(c *fiber.Ctx) error {
 	claims, err := utils.ExtractTokenMetadata(c)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(models.NewResponse(true, err.Error(), nil))
 	}
 
 	collection := new(models.Collection)
 	if err := collection.ExtractDataFromFile(c, database.Database, claims, nil); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
+		return c.Status(fiber.StatusInternalServerError).JSON(models.NewResponse(true, err.Error(), nil))
 	}
 	collection.Gateway = repository.GATEWAY_CUSTOM
 	collection.CollectionId = utils.CreateUintId()
 	collection.Alias = collection.GetNameAlias()
 
 	if err := utils.NewValidator().Struct(collection); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
+		return c.Status(fiber.StatusInternalServerError).JSON(models.NewResponse(true, err.Error(), nil))
 	}
 
 	if tx := database.Database.Create(collection); tx.Error != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": true,
-			"msg":   tx.Error.Error(),
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(models.NewResponse(true, tx.Error.Error(), nil))
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"error": false,
-		"msg":   "",
-		"data":  collection,
-	})
+	return c.Status(fiber.StatusOK).JSON(models.NewResponse(false, "success", collection))
 }

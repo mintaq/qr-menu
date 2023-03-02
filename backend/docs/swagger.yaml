@@ -39,6 +39,156 @@ definitions:
         minimum: 1
         type: integer
     type: object
+  models.Collection:
+    properties:
+      alias:
+        type: string
+      collection_id:
+        type: integer
+      created_at:
+        description: Set to current time if it is zero on creating
+        type: string
+      description:
+        type: string
+      gateway:
+        type: string
+      id:
+        type: integer
+      image:
+        $ref: '#/definitions/models.CollectionImage'
+      is_featured:
+        type: integer
+      name:
+        type: string
+      products:
+        items:
+          $ref: '#/definitions/models.Product'
+        type: array
+      store_id:
+        type: integer
+      updated_at:
+        description: Set to current unix seconds on updating or if it is zero on creating
+        type: string
+      user_app_token_id:
+        type: integer
+    required:
+    - name
+    - store_id
+    type: object
+  models.CollectionImage:
+    properties:
+      created_on:
+        type: string
+      id:
+        type: integer
+      src:
+        type: string
+    type: object
+  models.Option:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      position:
+        type: integer
+      product_id:
+        type: integer
+      values:
+        items:
+          type: string
+        type: array
+    type: object
+  models.Product:
+    properties:
+      alias:
+        type: string
+      content:
+        type: string
+      created_at:
+        type: string
+      created_on:
+        type: string
+      gateway:
+        type: string
+      id:
+        type: integer
+      images:
+        items:
+          $ref: '#/definitions/models.ProductImage'
+        type: array
+      is_charge_tax:
+        type: integer
+      modified_on:
+        type: string
+      name:
+        type: string
+      options:
+        items:
+          $ref: '#/definitions/models.Option'
+        type: array
+      price:
+        type: number
+      product_id:
+        type: integer
+      product_status:
+        type: string
+      product_type:
+        type: string
+      published_on:
+        type: string
+      status:
+        type: string
+      store_id:
+        type: integer
+      summary:
+        type: string
+      tags:
+        type: string
+      updated_at:
+        type: string
+      user_app_token_id:
+        type: integer
+      variants:
+        items:
+          $ref: '#/definitions/models.Variant'
+        type: array
+      vendor:
+        type: string
+    required:
+    - content
+    - gateway
+    - name
+    - price
+    - store_id
+    type: object
+  models.ProductImage:
+    properties:
+      created_on:
+        type: string
+      id:
+        type: integer
+      modified_on:
+        type: string
+      position:
+        type: integer
+      product_id:
+        type: integer
+      src:
+        type: string
+      variant_ids:
+        items:
+          type: integer
+        type: array
+    type: object
+  models.Response:
+    properties:
+      data: {}
+      error:
+        type: boolean
+      msg:
+        type: string
+    type: object
   models.Token:
     properties:
       access:
@@ -81,6 +231,47 @@ definitions:
     - user_role
     - user_status
     type: object
+  models.Variant:
+    properties:
+      barcode:
+        type: string
+      created_on:
+        type: string
+      grams:
+        type: integer
+      id:
+        type: integer
+      image_id:
+        type: integer
+      inventory_management:
+        type: string
+      inventory_quantity:
+        type: integer
+      modified_on:
+        type: string
+      option1:
+        type: string
+      option2:
+        type: string
+      option3:
+        type: string
+      position:
+        type: integer
+      price:
+        type: number
+      product_id:
+        type: integer
+      requires_shipping:
+        type: boolean
+      sku:
+        type: string
+      title:
+        type: string
+      weight:
+        type: number
+      weight_unit:
+        type: string
+    type: object
 info:
   contact:
     email: your@mail.com
@@ -93,6 +284,87 @@ info:
   title: API
   version: "1.0"
 paths:
+  /collections:
+    post:
+      consumes:
+      - multipart/form-data
+      description: This endpoint creates a new collection for a user's store based
+        on the data provided in a file sent in the request body. The file should be
+        in CSV or JSON format and contain the necessary data for creating a collection.
+        The user must be authenticated and authorized to create collections for the
+        specified store.
+      parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: CSV or JSON file containing the collection data
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            $ref: '#/definitions/models.Collection'
+        "400":
+          description: error
+          schema:
+            $ref: '#/definitions/models.Response'
+        "500":
+          description: error
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: Creates a new collection for a user's store.
+      tags:
+      - Collections
+  /collections/featured:
+    get:
+      consumes:
+      - application/json
+      description: This endpoint retrieves the featured collection for a user's store
+        based on the provided query parameters. The query parameters can include an
+        "includes" parameter to include the collection's products.
+      parameters:
+      - description: Bearer {token}
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: ID of the store to retrieve the featured collection for
+        in: query
+        name: store_id
+        required: true
+        type: integer
+      - description: 'Array of strings specifying what data to include in the response.
+          Valid values are: products.'
+        in: query
+        items:
+          type: string
+        name: includes
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            $ref: '#/definitions/models.Collection'
+        "400":
+          description: error
+          schema:
+            $ref: '#/definitions/models.Response'
+        "500":
+          description: error
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: Retrieves the featured collection for a user's store.
+      tags:
+      - Collections
   /v1/book:
     delete:
       consumes:
