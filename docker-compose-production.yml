@@ -37,7 +37,7 @@ services:
     ports:
       - 127.0.0.1:5009:5008
     volumes:
-      - ./static:/static
+      - ./backend/static:/static
     networks:
       - backend
     depends_on:
