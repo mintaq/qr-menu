@@ -8,22 +8,28 @@ import (
 	"gorm.io/gorm"
 )
 
+// @Summary Create Collect
+// @Description Create a new collect with given parameters.
+// @Tags Collects
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param Authorization header string true "Bearer {token}"
+// @Param store_id query int true "Store ID"
+// @Success 200 {object} models.Response
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /v1/collects [post]
 func CreateCollect(c *fiber.Ctx) error {
 	claims, err := utils.ExtractTokenMetadata(c)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(models.NewErrorResponse(err.Error()))
 	}
 
 	collect := new(models.Collect)
 
 	if err := c.BodyParser(collect); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
+		return c.Status(fiber.StatusInternalServerError).JSON(models.NewErrorResponse(err.Error()))
 	}
 
 	if err := utils.NewValidator().Struct(collect); err != nil {
@@ -56,15 +62,8 @@ func CreateCollect(c *fiber.Ctx) error {
 
 		return nil
 	}); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
+		return c.Status(fiber.StatusInternalServerError).JSON(models.NewErrorResponse(err.Error()))
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"error": false,
-		"msg":   "success",
-		"data":  collect,
-	})
+	return c.Status(fiber.StatusOK).JSON(models.NewResponse(false, "success", collect))
 }

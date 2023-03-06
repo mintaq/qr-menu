@@ -1,13 +1,10 @@
 package controllers
 
 import (
-	"image/color"
-	"os"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"github.com/skip2/go-qrcode"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/app/models"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/repository"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils"
@@ -453,41 +450,4 @@ func DeleteBook(c *fiber.Ctx) error {
 			"msg":   "permission denied, only the creator can delete his book",
 		})
 	}
-}
-
-func Test(c *fiber.Ctx) error {
-	store := c.Query("store")
-
-	dir, err := os.Getwd()
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
-	}
-
-	filePath := dir + os.Getenv("STATIC_PUBLIC_PATH") + "/stores/" + store
-
-	err = os.MkdirAll(filePath, os.ModePerm)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
-	}
-
-	file := filePath + "/qr2.png"
-
-	err = qrcode.WriteColorFile("https://dingdoong.io", qrcode.Highest, 256, color.Black, color.White, file)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
-	}
-
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"error": false,
-		"msg":   dir,
-	})
 }

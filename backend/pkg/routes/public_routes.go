@@ -31,6 +31,8 @@ func PublicRoutes(a *fiber.App) {
 	// Routes for Sapo:
 	v1.Get("/sapo/get-token", controllers.GetSapoAccessToken)
 
-	v1.Get("/test", controllers.Test)
-
+	// Routes for Cart:
+	v1.Get("/carts", controllers.GetCart)
+	v1.Post("/carts/add", controllers.AddItemToCart)
+	v1.Post("/carts/update", controllers.UpdateCart)
 }

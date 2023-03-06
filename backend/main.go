@@ -8,6 +8,7 @@ import (
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/routes"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/worker"
+	"gitlab.xipat.com/omega-team3/qr-menu-backend/platform/cache"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/platform/database"
 
 	"github.com/gofiber/fiber/v2"
@@ -33,6 +34,7 @@ func main() {
 	// Define Fiber config.
 	config := configs.FiberConfig()
 	database.MysqlGormConnection()
+	cache.RedisConnection()
 
 	// Define a new Fiber app with config.
 	app := fiber.New(config)
