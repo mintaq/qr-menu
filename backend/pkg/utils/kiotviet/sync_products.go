@@ -11,7 +11,7 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func SyncProducts(userId uint64, storeId uint64, pageSize int, currentItem int) (int, error) {
+func SyncProducts(userId, storeId uint64, pageSize, currentItem int) (int, error) {
 	log.Println("SyncProducts: Processing...")
 
 	store := new(models.Store)
@@ -49,7 +49,7 @@ func SyncProducts(userId uint64, storeId uint64, pageSize int, currentItem int) 
 		return 0, nil
 	}
 
-	currentItem = currentItem + pageSize
+	currentItem += pageSize
 	fmt.Println("countProduct: ", countProduct)
 	fmt.Println("lastItemId: ", currentItem)
 	var layout = "2006-01-02T15:04:05.0000000"

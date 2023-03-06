@@ -10,7 +10,7 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func SyncCollections(userId uint64, storeId uint64, pageSize int, currentItem int) (int, error) {
+func SyncCollections(userId, storeId uint64, pageSize, currentItem int) (int, error) {
 	log.Println("SyncCollections: Processing...")
 
 	store := new(models.Store)
@@ -48,7 +48,7 @@ func SyncCollections(userId uint64, storeId uint64, pageSize int, currentItem in
 		return 0, nil
 	}
 
-	currentItem = currentItem + pageSize
+	currentItem += pageSize
 	fmt.Println("countCollection: ", countCollection)
 	fmt.Println("lastItemId: ", currentItem)
 

@@ -69,7 +69,7 @@ func ConnectToken(userId uint64) (bool, error) {
 	return true, nil
 }
 
-func ProductList(userId uint64, pageSize int, currentItem int) (ProductsResponse, error) {
+func ProductList(userId uint64, pageSize, currentItem int) (ProductsResponse, error) {
 	var productsResponse ProductsResponse
 	fmt.Println(userId)
 	var app models.App
@@ -103,8 +103,10 @@ func ProductList(userId uint64, pageSize int, currentItem int) (ProductsResponse
 	code, body, errs := a.String()
 
 	if (code == fiber.StatusUnauthorized) {
-		ConnectToken(userId)
-		ProductList(userId, pageSize, currentItem)
+		connectToken, errConnectToken := ConnectToken(userId)
+		if (connectToken && errConnectToken == nil) {
+			return ProductList(userId, pageSize, currentItem)
+		}
 	}
 
 	if (len(errs) != 0) {
@@ -122,7 +124,7 @@ func ProductList(userId uint64, pageSize int, currentItem int) (ProductsResponse
 	return productsResponse, nil
 }
 
-func CollectionList(userId uint64, pageSize int, currentItem int) (CollectionsResponse, error) {
+func CollectionList(userId uint64, pageSize, currentItem int) (CollectionsResponse, error) {
 	var collectionsResponse CollectionsResponse
 	fmt.Println(userId)
 	var app models.App
@@ -156,8 +158,10 @@ func CollectionList(userId uint64, pageSize int, currentItem int) (CollectionsRe
 	code, body, errs := a.String()
 
 	if (code == fiber.StatusUnauthorized) {
-		ConnectToken(userId)
-		CollectionList(userId, pageSize, currentItem)
+		connectToken, errConnectToken := ConnectToken(userId)
+		if (connectToken && errConnectToken == nil) {
+			return CollectionList(userId, pageSize, currentItem)
+		}
 	}
 
 	if (len(errs) != 0) {

@@ -17,7 +17,7 @@ type SyncKiotVietCollectionsPayload struct {
 	CurrentItem int
 }
 
-func NewSyncKiotVietCollectionsRecursiveTask(userId uint64, storeId uint64, pageSize int, currentItem int) (*asynq.Task, error) {
+func NewSyncKiotVietCollectionsRecursiveTask(userId, storeId uint64, pageSize, currentItem int) (*asynq.Task, error) {
 	payload, err := json.Marshal(SyncKiotVietCollectionsPayload{UserId: userId, StoreId: storeId, PageSize: pageSize, CurrentItem: currentItem})
 	if err != nil {
 		return nil, err
