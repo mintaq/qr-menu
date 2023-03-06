@@ -57,3 +57,13 @@ func CreateImage(file *multipart.FileHeader, fileName, storeSubdomain string, c 
 func CreateUintId() uint64 {
 	return uint64(time.Now().UnixMilli())
 }
+
+func GetHashTableKey(c *fiber.Ctx) (string, error) {
+	storeId := c.Cookies("store_id")
+	tableId := c.Cookies("table_id")
+	if storeId == "" || tableId == "" {
+		return "", errors.New("get hash table key fail")
+	}
+
+	return fmt.Sprintf("%s:%s", storeId, tableId), nil
+}

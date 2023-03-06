@@ -5,15 +5,15 @@ import (
 	"encoding/json"
 
 	"github.com/hibiken/asynq"
-	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils/kiotviet"
+	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/kiotviet"
 )
 
 const TypeSyncKiotvietCollections = "sync:kiotviet:collections"
 
 type SyncKiotVietCollectionsPayload struct {
-	UserId uint64
-	StoreId uint64
-	PageSize int
+	UserId      uint64
+	StoreId     uint64
+	PageSize    int
 	CurrentItem int
 }
 

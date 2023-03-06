@@ -39,11 +39,11 @@ func ConnectToken(userId uint64) (bool, error) {
 
 	code, body, errs := a.String()
 
-	if (len(errs) != 0) {
+	if len(errs) != 0 {
 		return false, errs[0]
 	}
 
-	if (code == fiber.StatusOK) {
+	if code == fiber.StatusOK {
 		var connectToken ConnectTokenResponse
 
 		resErr := json.Unmarshal([]byte(body), &connectToken)
@@ -90,7 +90,7 @@ func ProductList(userId uint64, pageSize, currentItem int) (ProductsResponse, er
 	a := fiber.AcquireAgent()
 	a.Add("Accept", "application/json")
 	a.Add("Retailer", app.AppName)
-	a.Add("Authorization", "Bearer " + userAppToken.AccessToken)
+	a.Add("Authorization", "Bearer "+userAppToken.AccessToken)
 
 	req := a.Request()
 	req.Header.SetMethod(fiber.MethodGet)
@@ -102,18 +102,21 @@ func ProductList(userId uint64, pageSize, currentItem int) (ProductsResponse, er
 
 	code, body, errs := a.String()
 
-	if (code == fiber.StatusUnauthorized) {
-		connectToken, errConnectToken := ConnectToken(userId)
-		if (connectToken && errConnectToken == nil) {
+	if code == fiber.StatusUnauthorized {
+		ok, err := ConnectToken(userId)
+		if err != nil {
+			return productsResponse, err
+		}
+		if ok {
 			return ProductList(userId, pageSize, currentItem)
 		}
 	}
 
-	if (len(errs) != 0) {
+	if len(errs) != 0 {
 		return productsResponse, errs[0]
 	}
 
-	if (code == fiber.StatusOK) {
+	if code == fiber.StatusOK {
 		resErr := json.Unmarshal([]byte(body), &productsResponse)
 		fmt.Println(resErr)
 		if resErr != nil {
@@ -145,7 +148,7 @@ func CollectionList(userId uint64, pageSize, currentItem int) (CollectionsRespon
 	a := fiber.AcquireAgent()
 	a.Add("Accept", "application/json")
 	a.Add("Retailer", app.AppName)
-	a.Add("Authorization", "Bearer " + userAppToken.AccessToken)
+	a.Add("Authorization", "Bearer "+userAppToken.AccessToken)
 
 	req := a.Request()
 	req.Header.SetMethod(fiber.MethodGet)
@@ -157,18 +160,21 @@ func CollectionList(userId uint64, pageSize, currentItem int) (CollectionsRespon
 
 	code, body, errs := a.String()
 
-	if (code == fiber.StatusUnauthorized) {
-		connectToken, errConnectToken := ConnectToken(userId)
-		if (connectToken && errConnectToken == nil) {
+	if code == fiber.StatusUnauthorized {
+		ok, err := ConnectToken(userId)
+		if err != nil {
+			return collectionsResponse, err
+		}
+		if ok {
 			return CollectionList(userId, pageSize, currentItem)
 		}
 	}
 
-	if (len(errs) != 0) {
+	if len(errs) != 0 {
 		return collectionsResponse, errs[0]
 	}
 
-	if (code == fiber.StatusOK) {
+	if code == fiber.StatusOK {
 		resErr := json.Unmarshal([]byte(body), &collectionsResponse)
 		fmt.Println(resErr)
 		if resErr != nil {

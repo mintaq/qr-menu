@@ -1,7 +1,6 @@
 package kiotviet
 
 import (
-	"fmt"
 	"log"
 	"time"
 
@@ -38,7 +37,7 @@ func SyncProducts(userId, storeId uint64, pageSize, currentItem int) (int, error
 	var productsResponse ProductsResponse
 
 	productsResponse, errProductsResponse := ProductList(userId, pageSize, currentItem)
-	if (errProductsResponse != nil) {
+	if errProductsResponse != nil {
 		return 0, errProductsResponse
 	}
 
@@ -50,8 +49,6 @@ func SyncProducts(userId, storeId uint64, pageSize, currentItem int) (int, error
 	}
 
 	currentItem += pageSize
-	fmt.Println("countProduct: ", countProduct)
-	fmt.Println("lastItemId: ", currentItem)
 	var layout = "2006-01-02T15:04:05.0000000"
 
 	for i := 0; i < countProduct; i++ {
@@ -64,7 +61,7 @@ func SyncProducts(userId, storeId uint64, pageSize, currentItem int) (int, error
 		product.Summary = productsResponse.Data[i].Summary
 
 		createdOn, errCreatedOn := time.Parse(layout, productsResponse.Data[i].CreatedOn)
-		if (errCreatedOn == nil) {
+		if errCreatedOn == nil {
 			product.CreatedOn = createdOn
 		}
 
@@ -73,7 +70,7 @@ func SyncProducts(userId, storeId uint64, pageSize, currentItem int) (int, error
 
 		countProductImages := len(productsResponse.Data[i].Images)
 		productImages := []models.ProductImage{}
-		if (countProductImages != 0) {
+		if countProductImages != 0 {
 			for j := 0; j < countProductImages; j++ {
 				productImage := models.ProductImage{}
 				productImage.Src = productsResponse.Data[i].Images[j]
@@ -85,7 +82,7 @@ func SyncProducts(userId, storeId uint64, pageSize, currentItem int) (int, error
 		productOptions := []models.Option{}
 		countProductOptions := len(productsResponse.Data[i].Options)
 
-		if (countProductOptions != 0) {
+		if countProductOptions != 0 {
 			for k := 0; k < countProductOptions; k++ {
 				productOption := models.Option{}
 				productOption.ProductId = productsResponse.Data[i].Options[k].ProductId
@@ -98,7 +95,7 @@ func SyncProducts(userId, storeId uint64, pageSize, currentItem int) (int, error
 		product.ProductType = productsResponse.Data[i].ProductType
 
 		publishedOn, errPublishedOn := time.Parse(layout, productsResponse.Data[i].PublishedOn)
-		if (errPublishedOn == nil) {
+		if errPublishedOn == nil {
 			product.PublishedOn = publishedOn
 		}
 
@@ -106,7 +103,7 @@ func SyncProducts(userId, storeId uint64, pageSize, currentItem int) (int, error
 		product.ProductName = productsResponse.Data[i].ProductName
 
 		modifiedOn, errModifiedOn := time.Parse(layout, productsResponse.Data[i].ModifiedOn)
-		if (errModifiedOn == nil) {
+		if errModifiedOn == nil {
 			product.ModifiedOn = modifiedOn
 		}
 		product.Vendor = productsResponse.Data[i].Vendor

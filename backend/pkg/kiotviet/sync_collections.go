@@ -1,7 +1,6 @@
 package kiotviet
 
 import (
-	"fmt"
 	"log"
 
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/app/models"
@@ -37,7 +36,7 @@ func SyncCollections(userId, storeId uint64, pageSize, currentItem int) (int, er
 	var collectionsResponse CollectionsResponse
 
 	collectionsResponse, errCollectionsResponse := CollectionList(userId, pageSize, currentItem)
-	if (errCollectionsResponse != nil) {
+	if errCollectionsResponse != nil {
 		return 0, errCollectionsResponse
 	}
 
@@ -49,8 +48,6 @@ func SyncCollections(userId, storeId uint64, pageSize, currentItem int) (int, er
 	}
 
 	currentItem += pageSize
-	fmt.Println("countCollection: ", countCollection)
-	fmt.Println("lastItemId: ", currentItem)
 
 	for i := 0; i < countCollection; i++ {
 		collection := models.Collection{}
