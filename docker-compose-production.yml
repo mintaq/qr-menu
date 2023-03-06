@@ -36,7 +36,9 @@ services:
     restart: unless-stopped
     ports:
       - 127.0.0.1:5009:5008
-    user: digital-menu:digital-menu
+    user: digital-menu
+    group_add:
+      - "digital-menu"
     volumes:
       - ./backend/static:/usr/src/app/static
     networks:
