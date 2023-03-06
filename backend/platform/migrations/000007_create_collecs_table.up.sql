@@ -17,4 +17,4 @@ CREATE TABLE `qr_menu`.`collects` (
 ALTER TABLE
     `qr_menu`.`collects`
 ADD
-    CONSTRAINT `collection_product_unique` UNIQUE KEY(collection_id, product_id);
+    CONSTRAINT `store_collection_product_unique` UNIQUE KEY(store_id, collection_id, product_id);

@@ -33,7 +33,7 @@ type SapoProductResp struct {
 	Vendor      string       `json:"vendor" gorm:"default:null"`
 }
 
-// User struct to describe Product object.
+// Product struct to describe product object.
 type Product struct {
 	BasicModel
 	SapoProductResp

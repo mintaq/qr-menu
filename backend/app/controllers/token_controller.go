@@ -107,18 +107,8 @@ func RenewTokens(c *fiber.Ctx) error {
 			})
 		}
 
-		// Create a new Redis connection.
-		connRedis, err := cache.RedisConnection()
-		if err != nil {
-			// Return status 500 and Redis connection error.
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": true,
-				"msg":   err.Error(),
-			})
-		}
-
 		// Save refresh token to Redis.
-		errRedis := connRedis.Set(context.Background(), strconv.Itoa(userID), tokens.Refresh, 0).Err()
+		errRedis := cache.RedisClient.Set(context.Background(), strconv.Itoa(userID), tokens.Refresh, 0).Err()
 		if errRedis != nil {
 			// Return status 500 and Redis connection error.
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
