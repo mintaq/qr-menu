@@ -11,13 +11,14 @@ import (
 const TypeSyncKiotvietProducts = "sync:kiotviet:products"
 
 type SyncKiotVietProductsPayload struct {
-	Page  int
-	Limit int
-	Store string
+	UserId uint64
+	StoreId uint64
+	PageSize int
+	CurrentItem int
 }
 
-func NewSyncKiotVietProductsRecursiveTask(page, limit int, store string) (*asynq.Task, error) {
-	payload, err := json.Marshal(SyncKiotVietProductsPayload{Page: page, Limit: limit, Store: store})
+func NewSyncKiotVietProductsRecursiveTask(userId uint64, storeId uint64, pageSize int, currentItem int) (*asynq.Task, error) {
+	payload, err := json.Marshal(SyncKiotVietProductsPayload{UserId: userId, StoreId: storeId, PageSize: pageSize, CurrentItem: currentItem})
 	if err != nil {
 		return nil, err
 	}
@@ -31,13 +32,13 @@ func HandleSyncKiotvietProductsRecursiveTask(ctx context.Context, t *asynq.Task)
 		return err
 	}
 
-	count, err := kiotviet.SyncProducts(p.Page, p.Limit, p.Store)
+	lastCurrentItem, err := kiotviet.SyncProducts(p.UserId, p.StoreId, p.PageSize, p.CurrentItem)
 	if err != nil {
 		return err
 	}
 
-	if count > 0 {
-		payload, err := json.Marshal(SyncKiotVietProductsPayload{Page: p.Page + 1, Limit: p.Limit, Store: p.Store})
+	if lastCurrentItem > 0 {
+		payload, err := json.Marshal(SyncKiotVietProductsPayload{UserId: p.UserId, StoreId: p.StoreId, PageSize: p.PageSize, CurrentItem: lastCurrentItem})
 		if err != nil {
 			return err
 		}

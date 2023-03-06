@@ -1,137 +1,77 @@
 package kiotviet
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
-	"net/http"
 
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/app/models"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/repository"
-	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/platform/database"
 	"gorm.io/gorm/clause"
 )
 
-func SyncCustomCollections(page, limit int, storeDomain string) (int, error) {
-	log.Println("SyncCustomCollections: Processing...")
-	userAppToken := new(models.UserAppToken)
+func SyncCollections(userId uint64, storeId uint64, pageSize int, currentItem int) (int, error) {
+	log.Println("SyncCollections: Processing...")
 
-	if tx := database.Database.First(userAppToken, "store_domain = ?", storeDomain); tx.Error != nil {
-		return 0, tx.Error
+	store := new(models.Store)
+
+	errStore := database.Database.Where("user_id = ?", userId).Where("id = ?", storeId).First(&store)
+	if errStore.Error != nil {
+		return 0, errStore.Error
 	}
 
-	requestURI := fmt.Sprintf("https://%s/admin/custom_collections.json?page=%d&limit=%d", storeDomain, page, limit)
-	log.Println(requestURI)
-	req, err := http.NewRequest(http.MethodGet, requestURI, http.NoBody)
-	if err != nil {
-		return 0, err
-	}
-	req.Header.Set("X-Sapo-Access-Token", userAppToken.AccessToken)
-	resp, err := utils.HttpClient.Do(req)
-	if err != nil {
-		return 0, err
-	}
-	defer resp.Body.Close()
+	var app models.App
+	errApp := database.Database.Joins("left join user_app_tokens on apps.id = user_app_tokens.app_id").Where("user_id = ?", userId).Where("gateway = ?", "kiotviet").First(&app)
 
-	type RespCollections struct {
-		CustomCollections []models.SapoCollectionResp `json:"custom_collections"`
+	if errApp.Error != nil {
+		return 0, errApp.Error
 	}
 
-	respCollections := new(RespCollections)
+	var userAppToken models.UserAppToken
 
-	if resp.StatusCode == http.StatusOK {
-		err := json.NewDecoder(resp.Body).Decode(respCollections)
-		if err != nil {
-			return 0, err
-		}
+	errUserAppToken := database.Database.Where("user_id = ?", userId).Where("app_id = ?", app.ID).First(&userAppToken)
+	if errUserAppToken.Error != nil {
+		return 0, errUserAppToken.Error
+	}
+
+	var collectionsResponse CollectionsResponse
+
+	collectionsResponse, errCollectionsResponse := CollectionList(userId, pageSize, currentItem)
+	if (errCollectionsResponse != nil) {
+		return 0, errCollectionsResponse
 	}
 
 	collections := []models.Collection{}
-	countCollection := len(respCollections.CustomCollections)
+	countCollection := len(collectionsResponse.Data)
 
 	if countCollection == 0 {
 		return 0, nil
 	}
 
+	currentItem = currentItem + pageSize
+	fmt.Println("countCollection: ", countCollection)
+	fmt.Println("lastItemId: ", currentItem)
+
 	for i := 0; i < countCollection; i++ {
 		collection := models.Collection{}
 		collection.UserAppTokenId = userAppToken.ID
-		collection.Gateway = repository.GATEWAY_SAPO
-		collection.SapoCollectionResp = respCollections.CustomCollections[i]
-		collection.CollectionId = respCollections.CustomCollections[i].CollectionId
+		collection.Gateway = repository.GATEWAY_KIOTVIET
+		collection.StoreId = store.ID
+		collection.CollectionId = collectionsResponse.Data[i].CollectionId
+		collection.Description = collectionsResponse.Data[i].Description
+		collection.Alias = collectionsResponse.Data[i].Alias
+		collection.Name = collectionsResponse.Data[i].Name
 
 		collections = append(collections, collection)
 	}
+	fmt.Println("collections: ", collections)
 
 	if err := database.Database.Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "user_app_token_id"}, {Name: "collection_id"}},
+		Columns:   []clause.Column{{Name: "store_id"}, {Name: "collection_id"}},
 		DoUpdates: clause.AssignmentColumns([]string{"description", "alias", "name", "image"}),
 	}).Create(&collections).Error; err != nil {
 		return 0, err
 	}
 
-	return countCollection, nil
-}
-
-func SyncSmartCollections(page, limit int, storeDomain string) (int, error) {
-	log.Println("SyncSmartCollections: Processing...")
-
-	userAppToken := new(models.UserAppToken)
-
-	if tx := database.Database.First(userAppToken, "store = ?", storeDomain); tx.Error != nil {
-		return 0, tx.Error
-	}
-
-	requestURI := fmt.Sprintf("https://%s/admin/smart_collections.json?page=%d&limit=%d", storeDomain, page, limit)
-	log.Println(requestURI)
-	req, err := http.NewRequest(http.MethodGet, requestURI, http.NoBody)
-	if err != nil {
-		return 0, err
-	}
-	req.Header.Set("X-Sapo-Access-Token", userAppToken.AccessToken)
-	resp, err := utils.HttpClient.Do(req)
-	if err != nil {
-		return 0, err
-	}
-	defer resp.Body.Close()
-
-	type RespCollections struct {
-		SmartCollections []models.SapoCollectionResp `json:"smart_collections"`
-	}
-
-	respCollections := new(RespCollections)
-
-	if resp.StatusCode == http.StatusOK {
-		err := json.NewDecoder(resp.Body).Decode(respCollections)
-		if err != nil {
-			return 0, err
-		}
-	}
-
-	collections := []models.Collection{}
-	countCollection := len(respCollections.SmartCollections)
-
-	if countCollection == 0 {
-		return 0, nil
-	}
-
-	for i := 0; i < countCollection; i++ {
-		collection := models.Collection{}
-		collection.UserAppTokenId = userAppToken.ID
-		collection.Gateway = repository.GATEWAY_SAPO
-		collection.SapoCollectionResp = respCollections.SmartCollections[i]
-		collection.CollectionId = respCollections.SmartCollections[i].CollectionId
-
-		collections = append(collections, collection)
-	}
-
-	if err := database.Database.Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "user_app_token_id"}, {Name: "collection_id"}},
-		DoUpdates: clause.AssignmentColumns([]string{"description", "alias", "name", "image"}),
-	}).Create(&collections).Error; err != nil {
-		return 0, err
-	}
-
-	return countCollection, nil
+	return currentItem, nil
 }

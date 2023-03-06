@@ -1,67 +1,115 @@
 package kiotviet
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
-	"net/http"
+	"time"
 
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/app/models"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/repository"
-	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/platform/database"
 	"gorm.io/gorm/clause"
 )
 
-func SyncProducts(page, limit int, storeDomain string) (int, error) {
+func SyncProducts(userId uint64, storeId uint64, pageSize int, currentItem int) (int, error) {
 	log.Println("SyncProducts: Processing...")
 
-	userAppToken := new(models.UserAppToken)
+	store := new(models.Store)
 
-	if tx := database.Database.First(userAppToken, "store_domain = ?", storeDomain); tx.Error != nil {
-		return 0, tx.Error
+	errStore := database.Database.Where("user_id = ?", userId).Where("id = ?", storeId).First(&store)
+	if errStore.Error != nil {
+		return 0, errStore.Error
 	}
 
-	requestURI := fmt.Sprintf("https://%s/admin/products.json?page=%d&limit=%d", storeDomain, page, limit)
-	log.Println(requestURI)
-	req, err := http.NewRequest(http.MethodGet, requestURI, http.NoBody)
-	if err != nil {
-		return 0, err
-	}
-	req.Header.Set("X-Sapo-Access-Token", userAppToken.AccessToken)
-	resp, err := utils.HttpClient.Do(req)
-	if err != nil {
-		return 0, err
-	}
-	defer resp.Body.Close()
+	var app models.App
+	errApp := database.Database.Joins("left join user_app_tokens on apps.id = user_app_tokens.app_id").Where("user_id = ?", userId).Where("gateway = ?", "kiotviet").First(&app)
 
-	type RespProducts struct {
-		Products []models.SapoProductResp
+	if errApp.Error != nil {
+		return 0, errApp.Error
 	}
 
-	respProducts := new(RespProducts)
+	var userAppToken models.UserAppToken
 
-	if resp.StatusCode == http.StatusOK {
-		err := json.NewDecoder(resp.Body).Decode(respProducts)
-		if err != nil {
-			return 0, err
-		}
+	errUserAppToken := database.Database.Where("user_id = ?", userId).Where("app_id = ?", app.ID).First(&userAppToken)
+	if errUserAppToken.Error != nil {
+		return 0, errUserAppToken.Error
+	}
+
+	var productsResponse ProductsResponse
+
+	productsResponse, errProductsResponse := ProductList(userId, pageSize, currentItem)
+	if (errProductsResponse != nil) {
+		return 0, errProductsResponse
 	}
 
 	products := []models.Product{}
-	countProduct := len(respProducts.Products)
+	countProduct := len(productsResponse.Data)
 
 	if countProduct == 0 {
-		return countProduct, nil
+		return 0, nil
 	}
+
+	currentItem = currentItem + pageSize
+	fmt.Println("countProduct: ", countProduct)
+	fmt.Println("lastItemId: ", currentItem)
+	var layout = "2006-01-02T15:04:05.0000000"
 
 	for i := 0; i < countProduct; i++ {
 		product := models.Product{}
 		product.UserAppTokenId = userAppToken.ID
-		product.Gateway = repository.GATEWAY_SAPO
-		product.SapoProductResp = respProducts.Products[i]
-		product.ProductId = respProducts.Products[i].ProductId
+		product.Gateway = repository.GATEWAY_KIOTVIET
+		product.StoreId = store.ID
+		product.ProductStatus = repository.PRODUCT_STATUS_ACTIVE
+		product.Content = productsResponse.Data[i].Content
+		product.Summary = productsResponse.Data[i].Summary
 
+		createdOn, errCreatedOn := time.Parse(layout, productsResponse.Data[i].CreatedOn)
+		if (errCreatedOn == nil) {
+			product.CreatedOn = createdOn
+		}
+
+		product.Alias = productsResponse.Data[i].Alias
+		product.ProductId = productsResponse.Data[i].ProductId
+
+		countProductImages := len(productsResponse.Data[i].Images)
+		productImages := []models.ProductImage{}
+		if (countProductImages != 0) {
+			for j := 0; j < countProductImages; j++ {
+				productImage := models.ProductImage{}
+				productImage.Src = productsResponse.Data[i].Images[j]
+				productImages = append(productImages, productImage)
+			}
+		}
+		product.Images = productImages
+
+		productOptions := []models.Option{}
+		countProductOptions := len(productsResponse.Data[i].Options)
+
+		if (countProductOptions != 0) {
+			for k := 0; k < countProductOptions; k++ {
+				productOption := models.Option{}
+				productOption.ProductId = productsResponse.Data[i].Options[k].ProductId
+				productOption.Name = productsResponse.Data[i].Options[k].Name
+				productOption.Values = append(productOption.Values, productsResponse.Data[i].Options[k].Value)
+				productOptions = append(productOptions, productOption)
+			}
+		}
+		product.Options = productOptions
+		product.ProductType = productsResponse.Data[i].ProductType
+
+		publishedOn, errPublishedOn := time.Parse(layout, productsResponse.Data[i].PublishedOn)
+		if (errPublishedOn == nil) {
+			product.PublishedOn = publishedOn
+		}
+
+		product.Tags = productsResponse.Data[i].Tags
+		product.ProductName = productsResponse.Data[i].ProductName
+
+		modifiedOn, errModifiedOn := time.Parse(layout, productsResponse.Data[i].ModifiedOn)
+		if (errModifiedOn == nil) {
+			product.ModifiedOn = modifiedOn
+		}
+		product.Vendor = productsResponse.Data[i].Vendor
 		products = append(products, product)
 	}
 
@@ -72,5 +120,5 @@ func SyncProducts(page, limit int, storeDomain string) (int, error) {
 		return 0, err
 	}
 
-	return countProduct, nil
+	return currentItem, nil
 }
