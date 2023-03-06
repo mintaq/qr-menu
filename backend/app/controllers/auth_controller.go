@@ -170,18 +170,8 @@ func UserSignIn(c *fiber.Ctx) error {
 		})
 	}
 
-	// Create a new Redis connection.
-	connRedis, err := cache.RedisConnection()
-	if err != nil {
-		// Return status 500 and Redis connection error.
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
-	}
-
 	// Save refresh token to Redis.
-	errSaveToRedis := connRedis.Set(context.Background(), strFoundedUserId, tokens.Refresh, 0).Err()
+	errSaveToRedis := cache.RedisClient.Set(context.Background(), strFoundedUserId, tokens.Refresh, 0).Err()
 	if errSaveToRedis != nil {
 		// Return status 500 and Redis connection error.
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -224,18 +214,8 @@ func UserSignOut(c *fiber.Ctx) error {
 	// Define user ID.
 	userID := strconv.Itoa(claims.UserID)
 
-	// Create a new Redis connection.
-	connRedis, err := cache.RedisConnection()
-	if err != nil {
-		// Return status 500 and Redis connection error.
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
-	}
-
 	// Save refresh token to Redis.
-	errDelFromRedis := connRedis.Del(context.Background(), userID).Err()
+	errDelFromRedis := cache.RedisClient.Del(context.Background(), userID).Err()
 	if errDelFromRedis != nil {
 		// Return status 500 and Redis deletion error.
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
