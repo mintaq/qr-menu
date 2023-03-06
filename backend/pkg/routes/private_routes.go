@@ -27,6 +27,8 @@ func PrivateRoutes(a *fiber.App) {
 
 	// Routes for Kiotviet:
 	v1.Post("/kiotviet/create-user", controllers.CreateKiotvietUser)
+	v1.Post("/kiotviet/products/sync", controllers.SyncKiotvietProducts)
+	v1.Post("/kiotviet/collections/sync", controllers.SyncKiotvietCollections)
 
 	// Routes for Sapo:
 	v1.Get("/sapo/get-auth-url", controllers.GetSapoAuthURL)

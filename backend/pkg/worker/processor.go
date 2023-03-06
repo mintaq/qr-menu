@@ -37,6 +37,7 @@ func StartRedisServer() {
 	mux.HandleFunc(tasks.TypeSyncSapoCustomCollections, tasks.HandleSyncSapoCustomCollectionsRecursiveTask)
 	mux.HandleFunc(tasks.TypeSyncSapoSmartCollections, tasks.HandleSyncSapoSmartCollectionsRecursiveTask)
 	mux.HandleFunc(tasks.TypeSyncSapoCollect, tasks.HandleSyncSapoCollectRecursiveTask)
+	mux.HandleFunc(tasks.TypeSyncKiotvietProducts, tasks.HandleSyncKiotvietProductsRecursiveTask)
 	// ...register other handlers...
 
 	if err := srv.Run(mux); err != nil {
