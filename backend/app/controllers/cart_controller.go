@@ -16,6 +16,12 @@ import (
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/platform/database"
 )
 
+type ReqBody struct {
+	ProductId uint64 `json:"product_id" validate:"required"`
+	Quantity  int    `json:"quantity"`
+	Index     int    `json:"index"`
+}
+
 func AddItemToCart(c *fiber.Ctx) error {
 	cartDuration, _ := strconv.Atoi(os.Getenv("REDIS_MAX_CART_DURATION_HOURS"))
 	userToken := c.Cookies("user_token")
@@ -23,11 +29,6 @@ func AddItemToCart(c *fiber.Ctx) error {
 	tableId := c.Cookies("table_id")
 	if userToken == "" || storeId == "" || tableId == "" {
 		return c.Status(fiber.StatusInternalServerError).JSON(models.NewErrorResponse("invalid header"))
-	}
-
-	type ReqBody struct {
-		ProductId uint64 `json:"product_id" validate:"required"`
-		Quantity  int    `json:"quantity" validate:"required"`
 	}
 
 	product := new(models.Product)
@@ -57,7 +58,7 @@ func AddItemToCart(c *fiber.Ctx) error {
 		UserToken: userToken,
 		Items:     cartItems,
 	}
-	cartData.CountTotalItems().CountTotalPrice()
+	cartData.UpdateCountableFields()
 
 	tableKey := fmt.Sprintf("%s:%s", storeId, tableId)
 	dataStr, _ := json.Marshal(cartData)
@@ -71,6 +72,10 @@ func AddItemToCart(c *fiber.Ctx) error {
 }
 
 func GetCart(c *fiber.Ctx) error {
+	userToken := c.Cookies("user_token")
+	if userToken == "" {
+		return c.Status(fiber.StatusInternalServerError).JSON(models.NewErrorResponse("invalid header"))
+	}
 	tableKey, err := utils.GetHashTableKey(c)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(models.NewErrorResponse(err.Error()))
@@ -85,12 +90,61 @@ func GetCart(c *fiber.Ctx) error {
 	}
 
 	val := redisCmd.Val()
-	var res interface{}
-	_ = json.Unmarshal([]byte(val), &res)
+	cartData := models.Cart{}
+	_ = json.Unmarshal([]byte(val), &cartData)
+	if cartData.UserToken != userToken {
+		return c.Status(fiber.StatusInternalServerError).JSON(models.NewResponse(false, "success", nil))
+	}
 
-	return c.Status(fiber.StatusOK).JSON(models.NewResponse(false, "success", res))
+	return c.Status(fiber.StatusOK).JSON(models.NewResponse(false, "success", cartData))
 }
 
 func UpdateCart(c *fiber.Ctx) error {
-	return c.Status(fiber.StatusOK).JSON(models.NewResponse(false, "success", nil))
+	cartDuration, _ := strconv.Atoi(os.Getenv("REDIS_MAX_CART_DURATION_HOURS"))
+	userToken := c.Cookies("user_token")
+	if userToken == "" {
+		return c.Status(fiber.StatusInternalServerError).JSON(models.NewErrorResponse("invalid header"))
+	}
+	tableKey, err := utils.GetHashTableKey(c)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(models.NewErrorResponse(err.Error()))
+	}
+
+	reqBody := new(ReqBody)
+
+	if err := c.BodyParser(reqBody); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(models.NewErrorResponse(err.Error()))
+	}
+
+	if err := utils.NewValidator().Struct(reqBody); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   utils.ValidatorErrors(err),
+		})
+	}
+
+	redisCmd := cache.RedisClient.Get(context.Background(), tableKey)
+	switch {
+	case redisCmd.Err() == redis.Nil:
+		return c.Status(fiber.StatusInternalServerError).JSON(models.NewErrorResponse("key does not exist"))
+	case redisCmd.Err() != nil:
+		return c.Status(fiber.StatusInternalServerError).JSON(models.NewErrorResponse(redisCmd.Err().Error()))
+	}
+
+	cart := models.Cart{}
+	_ = json.Unmarshal([]byte(redisCmd.Val()), &cart)
+
+	if cart.UserToken != userToken {
+		return c.Status(fiber.StatusInternalServerError).JSON(models.NewResponse(false, "success", nil))
+	}
+
+	cart.UpdateCart(reqBody.Index, reqBody.Quantity).UpdateCountableFields()
+	dataStr, _ := json.Marshal(cart)
+	expireTime := time.Duration(cartDuration) * time.Hour
+
+	if err := cache.RedisClient.Set(context.Background(), tableKey, dataStr, expireTime).Err(); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(models.NewErrorResponse(err.Error()))
+	}
+
+	return c.Status(fiber.StatusOK).JSON(models.NewResponse(false, "success", cart))
 }

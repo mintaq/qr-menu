@@ -38,3 +38,29 @@ func (c *Cart) CountTotalItems() *Cart {
 	c.ItemsCount = totalItems
 	return c
 }
+
+func (c *Cart) UpdateCountableFields() *Cart {
+	var totalItems uint
+	var totalPrice float64
+	for i := range c.Items {
+		totalItems += uint(c.Items[i].Quantity)
+		totalPrice += c.Items[i].Price
+	}
+
+	c.ItemsCount = totalItems
+	c.TotalPrice = totalPrice
+	return c
+}
+
+func (c *Cart) UpdateCart(index, quantity int) *Cart {
+	if index >= 0 && index < len(c.Items) {
+		if quantity == 0 {
+			c.Items[index] = c.Items[len(c.Items)-1]
+			c.Items = c.Items[:len(c.Items)-1]
+		} else {
+			c.Items[index].Quantity = quantity
+		}
+	}
+
+	return c
+}
