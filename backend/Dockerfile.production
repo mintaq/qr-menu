@@ -20,6 +20,9 @@ RUN go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.51.2
 # Copy the code into the container.
 COPY . .
 
+RUN addgroup --g 1000 digital-menu
+RUN adduser -u 1000 -G digital-menu -h /usr/src/app/static -D digital-menu
+
 RUN go mod tidy
 RUN swag init --parseDependency --parseInternal
 
