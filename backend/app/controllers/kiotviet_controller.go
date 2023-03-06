@@ -7,7 +7,6 @@ import (
 	"github.com/hibiken/asynq"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/app/models"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils"
-	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils/kiotviet"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/worker"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/worker/tasks"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/platform/database"
@@ -146,32 +145,25 @@ func SyncKiotvietCollections(c *fiber.Ctx) error {
 		})
 	}
 
-	kiotviet.SyncCollections(uint64(claims.UserID), uint64(syncKiotVietRequest.StoreId), 100, 0)
+	task, err := tasks.NewSyncKiotVietCollectionsRecursiveTask(uint64(claims.UserID), uint64(syncKiotVietRequest.StoreId), 100, 0)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	info, err := worker.AsynqClient.Enqueue(task, asynq.MaxRetry(3), asynq.Timeout(1*time.Minute))
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"error": false,
 		"msg":   "success",
-		"data":  "1",
+		"data":  info.CompletedAt,
 	})
-	// task, err := tasks.NewSyncKiotVietProductsRecursiveTask(uint64(claims.UserID), uint64(syncKiotVietRequest.StoreId), 100, 0)
-	// if err != nil {
-	// 	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-	// 		"error": true,
-	// 		"msg":   err.Error(),
-	// 	})
-	// }
-
-	// info, err := worker.AsynqClient.Enqueue(task, asynq.MaxRetry(3), asynq.Timeout(1*time.Minute))
-	// if err != nil {
-	// 	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-	// 		"error": true,
-	// 		"msg":   err.Error(),
-	// 	})
-	// }
-
-	// return c.Status(fiber.StatusOK).JSON(fiber.Map{
-	// 	"error": false,
-	// 	"msg":   "success",
-	// 	"data":  info.CompletedAt,
-	// })
 }
