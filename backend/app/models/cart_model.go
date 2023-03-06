@@ -52,13 +52,34 @@ func (c *Cart) UpdateCountableFields() *Cart {
 	return c
 }
 
-func (c *Cart) UpdateCart(index, quantity int) *Cart {
+func (c *Cart) UpdateCartByIndex(index, quantity int) *Cart {
 	if index >= 0 && index < len(c.Items) {
 		if quantity == 0 {
 			c.Items[index] = c.Items[len(c.Items)-1]
 			c.Items = c.Items[:len(c.Items)-1]
 		} else {
 			c.Items[index].Quantity = quantity
+		}
+	}
+
+	return c
+}
+
+func (c *Cart) HasProduct(productId uint64) bool {
+	for index := range c.Items {
+		if c.Items[index].Product.ProductId == productId {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (c *Cart) UpdateCartByProductId(productId uint64, quantity int) *Cart {
+	for index := range c.Items {
+		if c.Items[index].Product.ProductId == productId {
+			c.Items[index].Quantity += quantity
+			return c
 		}
 	}
 

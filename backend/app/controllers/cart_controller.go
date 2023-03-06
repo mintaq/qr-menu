@@ -33,6 +33,10 @@ func AddItemToCart(c *fiber.Ctx) error {
 
 	product := new(models.Product)
 	reqBody := new(ReqBody)
+	tableKey := fmt.Sprintf("%s:%s", storeId, tableId)
+	cart := models.Cart{
+		UserToken: userToken,
+	}
 
 	if err := c.BodyParser(reqBody); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(models.NewErrorResponse(err.Error()))
@@ -45,23 +49,29 @@ func AddItemToCart(c *fiber.Ctx) error {
 		})
 	}
 
-	if err := database.Database.First(product, "product_id = ? AND store_id = ?", reqBody.ProductId, storeId).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(models.NewErrorResponse(err.Error()))
+	redisCmd := cache.RedisClient.Get(context.Background(), tableKey)
+
+	if redisCmd.Err() != redis.Nil || redisCmd.Err() != nil {
+		_ = json.Unmarshal([]byte(redisCmd.Val()), &cart)
 	}
 
-	cartItems := []models.CartItem{}
-	cartItems = append(cartItems, models.CartItem{
-		Product:  *product,
-		Quantity: reqBody.Quantity,
-	})
-	cartData := models.Cart{
-		UserToken: userToken,
-		Items:     cartItems,
-	}
-	cartData.UpdateCountableFields()
+	// If has product in cache -> increase quantity of product
+	if cart.HasProduct(reqBody.ProductId) {
+		cart.UpdateCartByProductId(reqBody.ProductId, reqBody.Quantity)
+	} else {
+		// If added product is not in cache -> get data from DB then create new cache
+		if err := database.Database.First(product, "product_id = ? AND store_id = ?", reqBody.ProductId, storeId).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(models.NewErrorResponse(err.Error()))
+		}
 
-	tableKey := fmt.Sprintf("%s:%s", storeId, tableId)
-	dataStr, _ := json.Marshal(cartData)
+		cart.Items = append(cart.Items, models.CartItem{
+			Product:  *product,
+			Quantity: reqBody.Quantity,
+		})
+	}
+
+	cart.UpdateCountableFields()
+	dataStr, _ := json.Marshal(cart)
 	expireTime := time.Duration(cartDuration) * time.Hour
 
 	if err := cache.RedisClient.Set(context.Background(), tableKey, dataStr, expireTime).Err(); err != nil {
@@ -138,7 +148,7 @@ func UpdateCart(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(models.NewResponse(false, "success", nil))
 	}
 
-	cart.UpdateCart(reqBody.Index, reqBody.Quantity).UpdateCountableFields()
+	cart.UpdateCartByIndex(reqBody.Index, reqBody.Quantity).UpdateCountableFields()
 	dataStr, _ := json.Marshal(cart)
 	expireTime := time.Duration(cartDuration) * time.Hour
 
