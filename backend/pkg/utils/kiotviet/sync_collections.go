@@ -64,7 +64,6 @@ func SyncCollections(userId uint64, storeId uint64, pageSize int, currentItem in
 
 		collections = append(collections, collection)
 	}
-	fmt.Println("collections: ", collections)
 
 	if err := database.Database.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "store_id"}, {Name: "collection_id"}},
