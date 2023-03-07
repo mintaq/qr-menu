@@ -53,17 +53,19 @@ func (c *Cart) UpdateCountableFields() *Cart {
 }
 
 func (c *Cart) UpdateCartByIndex(index, quantity int) *Cart {
-	if index >= 0 && index < len(c.Items) {
-		if quantity == 0 {
-			c.Items[index] = c.Items[len(c.Items)-1]
-			c.Items = c.Items[:len(c.Items)-1]
-		} else {
-			c.Items[index].Quantity = quantity
-		}
+	if index < 0 || index >= len(c.Items) {
+		return c
+	}
+
+	if quantity == 0 {
+		c.Items = append(c.Items[:index], c.Items[index+1:]...)
+	} else {
+		c.Items[index].Quantity = quantity
 	}
 
 	return c
 }
+
 
 func (c *Cart) HasProduct(productId uint64) bool {
 	for index := range c.Items {
