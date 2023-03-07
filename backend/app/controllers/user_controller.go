@@ -27,8 +27,9 @@ func GetUserProfile(c *fiber.Ctx) error {
 	}
 
 	type App struct {
-		Id      uint64 `json:"id"`
-		Gateway string `json:"gateway"`
+		Id          uint64 `json:"id"`
+		Gateway     string `json:"gateway"`
+		StoreDomain string `json:"store_domain"`
 	}
 	apps := []App{}
 
@@ -37,7 +38,7 @@ func GetUserProfile(c *fiber.Ctx) error {
 		if err := database.Database.First(&app, "id = ?", userApp.AppId).Error; err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(models.NewErrorResponse(err.Error()))
 		}
-		apps = append(apps, App{Id: app.ID, Gateway: app.Gateway})
+		apps = append(apps, App{Id: app.ID, Gateway: app.Gateway, StoreDomain: userApp.StoreDomain})
 	}
 
 	return c.Status(fiber.StatusOK).JSON(models.NewResponse(false, "success", map[string]interface{}{
