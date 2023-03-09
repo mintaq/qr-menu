@@ -29,3 +29,11 @@ func NewErrorResponse(msg string) ErrorResponse {
 		Msg:   msg,
 	}
 }
+
+func NewSuccessResponse(data interface{}) Response {
+	return Response{
+		Error: false,
+		Msg:   "success",
+		Data:  data,
+	}
+}

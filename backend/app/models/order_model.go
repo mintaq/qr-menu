@@ -27,8 +27,8 @@ type Order struct {
 	Name                  string          `json:"name"` // name of order. Eg: "#0001"
 	Note                  string          `json:"note"`
 	NoteAttributes        []NoteAttribute `json:"note_attributes"`
-	Number                uint64          `json:"number"`
-	OrderNumber           uint64          `json:"order_number"`
+	Number                uint64          `json:"number"` // The unique number that identifies the Order for the Shop. This number is a self-incrementing number and starts at 1000. Eg: 
+	OrderNumber           uint64          `json:"order_number"` // The unique number that identifies the Order. This number is used by Shop owners and customers.
 	PaymentGatewayNames   []string        `json:"payment_gate_way_names"`
 	ProcessedOn           time.Time       `json:"processed_on"`
 	ProcessingMethod      string          `json:"processing_method"`
