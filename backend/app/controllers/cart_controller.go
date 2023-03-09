@@ -27,8 +27,8 @@ func AddItemToCart(c *fiber.Ctx) error {
 	cartDuration, _ := strconv.Atoi(os.Getenv("REDIS_MAX_CART_DURATION_HOURS"))
 
 	// Get required cookies
-	userToken, storeId, tableId := c.Cookies("user_token"), c.Cookies("store_id"), c.Cookies("table_id")
-	if userToken == "" || storeId == "" || tableId == "" {
+	cartToken, storeId, tableId := c.Cookies("cart_token"), c.Cookies("store_id"), c.Cookies("table_id")
+	if cartToken == "" || storeId == "" || tableId == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(models.NewErrorResponse("invalid header"))
 	}
 
@@ -48,7 +48,7 @@ func AddItemToCart(c *fiber.Ctx) error {
 
 	// Get cart from Redis cache
 	tableKey := fmt.Sprintf("%s:%s", storeId, tableId)
-	cart := models.Cart{UserToken: userToken}
+	cart := models.Cart{CartToken: cartToken}
 	redisCmd := cache.RedisClient.Get(context.Background(), tableKey)
 	if err := redisCmd.Err(); err != nil && err != redis.Nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(models.NewErrorResponse(err.Error()))
@@ -86,8 +86,8 @@ func AddItemToCart(c *fiber.Ctx) error {
 }
 
 func GetCart(c *fiber.Ctx) error {
-	userToken := c.Cookies("user_token")
-	if userToken == "" {
+	cartToken := c.Cookies("cart_token")
+	if cartToken == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(models.NewErrorResponse("missing user token"))
 	}
 
@@ -101,7 +101,7 @@ func GetCart(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(models.NewErrorResponse(err.Error()))
 	}
 
-	if cart.UserToken != userToken {
+	if cart.CartToken != cartToken {
 		return c.Status(fiber.StatusOK).JSON(models.NewResponse(false, "success", cart))
 	}
 
@@ -109,8 +109,8 @@ func GetCart(c *fiber.Ctx) error {
 }
 
 func UpdateCart(c *fiber.Ctx) error {
-	userToken := c.Cookies("user_token")
-	if userToken == "" {
+	cartToken := c.Cookies("cart_token")
+	if cartToken == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(models.NewErrorResponse("missing user token"))
 	}
 
@@ -136,7 +136,7 @@ func UpdateCart(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(models.NewErrorResponse(err.Error()))
 	}
 
-	if cart.UserToken != userToken {
+	if cart.CartToken != cartToken {
 		return c.Status(fiber.StatusBadRequest).JSON(models.NewErrorResponse("user token does not match cart data"))
 	}
 

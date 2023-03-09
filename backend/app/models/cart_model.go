@@ -2,7 +2,7 @@ package models
 
 // Cart struct to describe cart object.
 type Cart struct {
-	UserToken  string     `json:"user_token"`
+	CartToken  string     `json:"cart_token"`
 	Items      []CartItem `json:"items"`
 	TotalPrice float64    `json:"total_price"`
 	Note       string     `json:"note"`
@@ -65,7 +65,6 @@ func (c *Cart) UpdateCartByIndex(index, quantity int) *Cart {
 
 	return c
 }
-
 
 func (c *Cart) HasProduct(productId uint64) bool {
 	for index := range c.Items {

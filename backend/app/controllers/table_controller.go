@@ -88,7 +88,7 @@ func GetTables(c *fiber.Ctx) error {
 	}
 
 	var tables []models.Table
-	query := database.Database.Where("store_id = ?", c.Query("store_id"))
+	query := database.Database.Model(models.Table{}).Where("store_id = ?", c.Query("store_id"))
 	tableName := c.Query("name")
 	if tableName != "" {
 		query = query.Where("name LIKE ?", "%"+tableName+"%")

@@ -77,7 +77,7 @@ func GetStores(c *fiber.Ctx) error {
 
 	stores := []models.Store{}
 
-	query := database.Database.Where("user_id = ?", tokenMetaData.UserID)
+	query := database.Database.Model(models.Store{}).Where("user_id = ?", tokenMetaData.UserID)
 
 	pagination, scopes := models.Paginate(models.Store{}, c, query)
 

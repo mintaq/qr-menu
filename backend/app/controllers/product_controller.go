@@ -156,15 +156,19 @@ func GetProducts(c *fiber.Ctx) error {
 	}
 
 	var products []models.Product
-	query := database.Database.Where("store_id = ?", c.Query("store_id"))
-	pagination, scopes := models.Paginate(models.Product{}, c, query)
-
-	if tx := database.Database.Scopes(scopes).Find(&products); tx.Error != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+	query := database.Database.Model(models.Product{}).Where("store_id = ?", c.Query("store_id"))
+	pagination, newQuery, err := models.Paginate2(c, query)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": true,
-			"msg":   tx.Error.Error(),
+			"msg":   err.Error(),
 		})
 	}
+
+	if err := newQuery.Find(&products).Error; err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(models.NewErrorResponse(err.Error()))
+	}
+	pagination.TotalRows = int64(len(products))
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"error":      false,

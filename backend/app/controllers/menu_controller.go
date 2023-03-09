@@ -72,7 +72,7 @@ func GetMenus(c *fiber.Ctx) error {
 	}
 
 	var menus []models.Menu
-	query := database.Database.Where("store_id = ?", c.Query("store_id"))
+	query := database.Database.Model(models.Menu{}).Where("store_id = ?", c.Query("store_id"))
 	menuName := c.Query("name")
 	if menuName != "" {
 		query = query.Where("name LIKE ?", "%"+menuName+"%")

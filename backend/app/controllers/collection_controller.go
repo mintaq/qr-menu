@@ -39,7 +39,7 @@ func GetCollections(c *fiber.Ctx) error {
 
 	isFeatured, _ := strconv.Atoi(c.Query("is_featured", "0"))
 
-	query := database.Database.Where("store_id = ? AND is_featured = ?", store.ID, isFeatured)
+	query := database.Database.Model(models.Collection{}).Where("store_id = ? AND is_featured = ?", store.ID, isFeatured)
 	pagination, scope := models.Paginate(models.Collection{}, c, query)
 	collections := []models.Collection{}
 

@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"log"
 	"math"
 	"regexp"
@@ -77,7 +78,7 @@ func (p *Pagination) GetPage() int {
 // the current page and the total number of pages.
 func Paginate(model interface{}, c *fiber.Ctx, query *gorm.DB) (p *Pagination, f func(db *gorm.DB) *gorm.DB) {
 	var totalPages, totalRows int64
-	db := query.Session(&gorm.Session{})
+	// db := query.Session(&gorm.Session{})
 	page, _ := strconv.Atoi(c.Query("page", "1"))
 	if page <= 0 {
 		page = 1
@@ -99,12 +100,12 @@ func Paginate(model interface{}, c *fiber.Ctx, query *gorm.DB) (p *Pagination, f
 
 	offset := (page - 1) * limit
 
-	if tx := db.Model(&model).Where(query).Count(&totalPages); tx.Error != nil {
+	if tx := query.Select("id").Count(&totalPages); tx.Error != nil {
 		log.Println(tx.Error.Error())
 		return nil, nil
 	}
 
-	if tx := db.Model(&model).Where(query).Offset(offset).Limit(limit).Count(&totalRows); tx.Error != nil {
+	if tx := query.Select("id").Limit(limit).Offset(offset).Count(&totalRows); tx.Error != nil {
 		log.Println(tx.Error.Error())
 		return nil, nil
 	}
@@ -117,8 +118,59 @@ func Paginate(model interface{}, c *fiber.Ctx, query *gorm.DB) (p *Pagination, f
 	}
 
 	return &pagination, func(db *gorm.DB) *gorm.DB {
-		return db.Where(query).Offset(offset).Limit(limit).Order(sortBy)
+		return db.Where(query).Limit(limit).Offset(offset).Order(sortBy)
 	}
+}
+
+func Paginate2(c *fiber.Ctx, query *gorm.DB) (*Pagination, *gorm.DB, error) {
+	// Initialize pagination variables
+	var totalPages, totalRows int64
+	page, err := strconv.Atoi(c.Query("page", "1"))
+	if err != nil || page <= 0 {
+		return nil, nil, errors.New("invalid page number")
+	}
+
+	limit, err := strconv.Atoi(c.Query("limit", "10"))
+	if err != nil || limit <= 0 || limit > 100 {
+		return nil, nil, errors.New("invalid limit value")
+	}
+
+	sortBy := c.Query("sort_by", "id:asc")
+	if match, _ := regexp.MatchString(`^[a-zA-Z]+:(?i)(asc|desc)$`, sortBy); !match {
+		sortBy = "id:asc"
+	}
+	sortBy = strings.ReplaceAll(sortBy, ":", " ")
+
+	offset := (page - 1) * limit
+
+	// Count the total number of pages and rows
+	if err := query.Count(&totalPages).Error; err != nil {
+		return nil, nil, err
+	}
+
+	if err := query.Limit(limit).Offset(offset).Order(sortBy).Count(&totalRows).Error; err != nil {
+		return nil, nil, err
+	}
+
+	db := query.Session(&gorm.Session{NewDB: true})
+	sql := db.ToSQL(func(tx *gorm.DB) *gorm.DB {
+		return tx.Model(Product{}).Limit(limit).Offset(offset).Order(sortBy).Count(&totalRows)
+	})
+
+	log.Println(sql)
+
+	// Create pagination object
+	pagination := Pagination{
+		Limit:      limit,
+		Page:       page,
+		TotalPages: int64(math.Round(float64(totalPages) / float64(limit))),
+		TotalRows:  totalRows,
+	}
+
+	paginatedQuery := query.Limit(limit).Offset(offset).Order(sortBy)
+
+	// Return the pagination object and a function that applies pagination to a GORM query
+	return &pagination, paginatedQuery, nil
 }
 
 func PaginateByScope(model interface{}, c *fiber.Ctx, scope func(db *gorm.DB) *gorm.DB, db *gorm.DB) (p *Pagination, f func(db *gorm.DB) *gorm.DB) {
