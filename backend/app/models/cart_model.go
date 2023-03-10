@@ -11,7 +11,8 @@ type Cart struct {
 
 type CartItem struct {
 	Product
-	Quantity int `json:"quantity"`
+	Quantity  int  `json:"quantity"`
+	IsOrdered bool `json:"is_ordered"`
 }
 
 type AddItemToCartReqBody struct {
@@ -44,7 +45,7 @@ func (c *Cart) UpdateCountableFields() *Cart {
 	var totalPrice float64
 	for i := range c.Items {
 		totalItems += uint(c.Items[i].Quantity)
-		totalPrice += c.Items[i].Price
+		totalPrice += c.Items[i].Price * float64(c.Items[i].Quantity)
 	}
 
 	c.ItemsCount = totalItems
@@ -53,7 +54,7 @@ func (c *Cart) UpdateCountableFields() *Cart {
 }
 
 func (c *Cart) UpdateCartByIndex(index, quantity int) *Cart {
-	if index < 0 || index >= len(c.Items) {
+	if index < 0 || index >= len(c.Items) || c.Items[index].IsOrdered {
 		return c
 	}
 
@@ -74,6 +75,14 @@ func (c *Cart) HasProduct(productId uint64) bool {
 	}
 
 	return false
+}
+
+func (c *Cart) UpdateAllItemsOrderedStatus() *Cart {
+	for index := range c.Items {
+		c.Items[index].IsOrdered = true
+	}
+
+	return c
 }
 
 func (c *Cart) UpdateCartByProductId(productId uint64, quantity int) *Cart {

@@ -4,12 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"log"
-	"os"
 	"time"
 
 	"github.com/redis/go-redis/v9"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/app/models"
+	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils"
 )
 
 // GetCartData retrieves the cart data stored in Redis based on a given key.
@@ -23,12 +22,8 @@ func GetCartData(key, cartToken string) (*models.Cart, error) {
 
 	cart := &models.Cart{}
 	if err == redis.Nil {
-		expireDuration, err := time.ParseDuration(os.Getenv("REDIS_MAX_CART_DURATION_HOURS") + "h")
-		if err != nil {
-			return nil, err
-		}
 		cart.CartToken = cartToken
-		err = SetCartData(key, cart, expireDuration)
+		err = SetCartData(key, cart, utils.GetRedisCartDuration())
 		if err != nil {
 			return nil, err
 		}
@@ -36,8 +31,6 @@ func GetCartData(key, cartToken string) (*models.Cart, error) {
 		if err := json.Unmarshal([]byte(val), cart); err != nil {
 			return nil, err
 		}
-
-		log.Println(cart)
 
 		if cart.CartToken != "" && cart.CartToken != cartToken {
 			return nil, errors.New("table is already taken")

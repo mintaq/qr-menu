@@ -1,9 +1,6 @@
 package controllers
 
 import (
-	"os"
-	"time"
-
 	"github.com/gofiber/fiber/v2"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/app/models"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils"
@@ -68,17 +65,13 @@ func AddItemToCart(c *fiber.Ctx) error {
 
 	// Update countable fields and save cart to Redis cache
 	cart.UpdateCountableFields()
-	expireDuration, err := time.ParseDuration(os.Getenv("REDIS_MAX_CART_DURATION_HOURS") + "h")
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(models.NewErrorResponse(err.Error()))
-	}
 
-	if err := cache.SetCartData(tableKey, cart, expireDuration); err != nil {
+	if err := cache.SetCartData(tableKey, cart, utils.GetRedisCartDuration()); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(models.NewErrorResponse(err.Error()))
 	}
 
 	// Return success response
-	return c.Status(fiber.StatusOK).JSON(models.NewResponse(false, "success", nil))
+	return c.Status(fiber.StatusOK).JSON(models.NewSuccessResponse(cart))
 }
 
 func GetCart(c *fiber.Ctx) error {
@@ -115,7 +108,12 @@ func UpdateCart(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(models.NewErrorResponse(err.Error()))
 	}
 
-	reqBody := new(CartReqBody)
+	type CartUpdateReqBody struct {
+		Index    int `json:"index" validate:"gte=0"`
+		Quantity int `json:"quantity" validate:"gte=0"`
+	}
+
+	reqBody := new(CartUpdateReqBody)
 	if err := c.BodyParser(reqBody); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(models.NewErrorResponse("invalid request body"))
 	}
@@ -132,18 +130,9 @@ func UpdateCart(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(models.NewErrorResponse(err.Error()))
 	}
 
-	if cart.CartToken != cartToken {
-		return c.Status(fiber.StatusBadRequest).JSON(models.NewErrorResponse("user token does not match cart data"))
-	}
-
 	cart.UpdateCartByIndex(reqBody.Index, reqBody.Quantity).UpdateCountableFields()
 
-	expireDuration, err := time.ParseDuration(os.Getenv("REDIS_MAX_CART_DURATION_HOURS") + "h")
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(models.NewErrorResponse(err.Error()))
-	}
-
-	if err := cache.SetCartData(tableKey, cart, expireDuration); err != nil {
+	if err := cache.SetCartData(tableKey, cart, utils.GetRedisCartDuration()); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(models.NewErrorResponse(err.Error()))
 	}
 

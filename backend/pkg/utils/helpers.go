@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"image/color"
+	"log"
 	"mime/multipart"
 	"os"
 	"strings"
@@ -76,3 +77,11 @@ func GetHashTableKey(c *fiber.Ctx) (string, error) {
 	return hashTableKey, nil
 }
 
+func GetRedisCartDuration() time.Duration {
+	expireDuration, err := time.ParseDuration(os.Getenv("REDIS_MAX_CART_DURATION_HOURS") + "h")
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	return expireDuration
+}
