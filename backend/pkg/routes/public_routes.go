@@ -35,4 +35,7 @@ func PublicRoutes(a *fiber.App) {
 	v1.Get("/carts", controllers.GetCart)
 	v1.Post("/carts/add", controllers.AddItemToCart)
 	v1.Post("/carts/update", controllers.UpdateCart)
+
+	// Routes for Order:
+	v1.Post("/orders", controllers.CreateOrder)
 }

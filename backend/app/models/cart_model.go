@@ -85,6 +85,16 @@ func (c *Cart) UpdateAllItemsOrderedStatus() *Cart {
 	return c
 }
 
+func (c *Cart) IsAllItemOrdered() bool {
+	for index := range c.Items {
+		if !c.Items[index].IsOrdered {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (c *Cart) UpdateCartByProductId(productId uint64, quantity int) *Cart {
 	for index := range c.Items {
 		if c.Items[index].Product.ProductId == productId {
