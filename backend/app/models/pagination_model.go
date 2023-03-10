@@ -78,7 +78,6 @@ func (p *Pagination) GetPage() int {
 // the current page and the total number of pages.
 func Paginate(model interface{}, c *fiber.Ctx, query *gorm.DB) (p *Pagination, f func(db *gorm.DB) *gorm.DB) {
 	var totalPages, totalRows int64
-	// db := query.Session(&gorm.Session{})
 	page, _ := strconv.Atoi(c.Query("page", "1"))
 	if page <= 0 {
 		page = 1

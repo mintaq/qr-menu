@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"image/color"
 	"mime/multipart"
+	"os"
 	"strings"
 	"time"
 
@@ -59,11 +60,19 @@ func CreateUintId() uint64 {
 }
 
 func GetHashTableKey(c *fiber.Ctx) (string, error) {
-	storeId := c.Cookies("store_id")
-	tableId := c.Cookies("table_id")
-	if storeId == "" || tableId == "" {
-		return "", errors.New("get hash table key fail")
+	storeID := c.Cookies("store_id")
+	tableID := c.Cookies("table_id")
+
+	if storeID == "" {
+		return "", errors.New("missing store ID")
 	}
 
-	return fmt.Sprintf("%s:%s", storeId, tableId), nil
+	if tableID == "" {
+		return "", errors.New("missing table ID")
+	}
+
+	hashTableKey := fmt.Sprintf("%s:%s:%s", os.Getenv("QR_MENU_STORE_TABLE_PREFIX"), storeID, tableID)
+
+	return hashTableKey, nil
 }
+
