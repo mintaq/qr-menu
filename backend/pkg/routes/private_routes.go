@@ -74,6 +74,7 @@ func PrivateRoutes(a *fiber.App) {
 	// Routes for Table:
 	v1.Post("/tables", controllers.CreateTable)
 	v1.Get("/tables", controllers.GetTables)
+	v1.Get("/tables/:id", controllers.GetTableById)
 	v1.Delete("/tables/:id", controllers.DeleteTable)
 
 	// Route for Collect:

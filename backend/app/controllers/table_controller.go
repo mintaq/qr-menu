@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/app/models"
@@ -108,6 +109,29 @@ func GetTables(c *fiber.Ctx) error {
 		"msg":        "success",
 		"data":       tables,
 		"pagination": pagination,
+	})
+}
+
+func GetTableById(c *fiber.Ctx) error {
+	_, err := utils.ExtractTokenMetadata(c)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(models.NewErrorResponse(err.Error()))
+	}
+
+	tableId, storeId := c.Params("id"), c.Query("store_id")
+
+	storeIdInt, _ := strconv.Atoi(storeId)
+	tableIdInt, _ := strconv.Atoi(tableId)
+	table := new(models.Table)
+	
+	if err := database.Database.First(table, "store_id = ? AND id = ?", storeIdInt, tableIdInt).Error; err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(models.NewErrorResponse(err.Error()))
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"error": false,
+		"msg":   "success",
+		"data":  table,
 	})
 }
 
