@@ -3,6 +3,7 @@ package kiotviet
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 
 	"github.com/gofiber/fiber/v2"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/app/models"
@@ -71,7 +72,7 @@ func ConnectToken(userId uint64) (bool, error) {
 
 func ProductList(userId uint64, pageSize, currentItem int) (ProductsResponse, error) {
 	var productsResponse ProductsResponse
-	fmt.Println(userId)
+	log.Println(userId)
 	var app models.App
 
 	errApp := database.Database.Joins("left join user_app_tokens on apps.id = user_app_tokens.app_id").Where("user_id = ?", userId).Where("gateway = ?", "kiotviet").First(&app)
@@ -118,7 +119,7 @@ func ProductList(userId uint64, pageSize, currentItem int) (ProductsResponse, er
 
 	if code == fiber.StatusOK {
 		resErr := json.Unmarshal([]byte(body), &productsResponse)
-		fmt.Println(resErr)
+		log.Println(resErr)
 		if resErr != nil {
 			return productsResponse, resErr
 		}
@@ -129,7 +130,7 @@ func ProductList(userId uint64, pageSize, currentItem int) (ProductsResponse, er
 
 func CollectionList(userId uint64, pageSize, currentItem int) (CollectionsResponse, error) {
 	var collectionsResponse CollectionsResponse
-	fmt.Println(userId)
+	log.Println(userId)
 	var app models.App
 
 	errApp := database.Database.Joins("left join user_app_tokens on apps.id = user_app_tokens.app_id").Where("user_id = ?", userId).Where("gateway = ?", "kiotviet").First(&app)
@@ -176,7 +177,7 @@ func CollectionList(userId uint64, pageSize, currentItem int) (CollectionsRespon
 
 	if code == fiber.StatusOK {
 		resErr := json.Unmarshal([]byte(body), &collectionsResponse)
-		fmt.Println(resErr)
+		log.Println(resErr)
 		if resErr != nil {
 			return collectionsResponse, resErr
 		}

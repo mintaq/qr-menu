@@ -63,8 +63,6 @@ type ProductDBForm interface {
 }
 
 func (p *ProductFormData) GetProduct() *Product {
-	test := utils.CreateUintId()
-	fmt.Println(test)
 	return &p.Product
 }
 
