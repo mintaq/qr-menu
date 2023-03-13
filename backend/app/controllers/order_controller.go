@@ -40,7 +40,7 @@ func CreateOrder(c *fiber.Ctx) error {
 		Gateway:           repository.GATEWAY_CUSTOM,
 	}
 
-	if err := database.Database.Save(order).Error; err != nil {
+	if err := database.Database.Model(models.Order{}).Create(&order).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(models.NewErrorResponse(err.Error()))
 	}
 

@@ -1,49 +1,64 @@
 package models
 
-import "time"
+import (
+	"database/sql/driver"
+	"encoding/json"
+	"time"
+)
 
 type Order struct {
 	BasicModel
-	StoreId               uint64          `json:"store_id"`
-	BillingAddress        BillingAddress  `json:"billing_address"`
-	BrowserIP             string          `json:"browser_ip"`
-	BuyerAcceptsMarketing bool            `json:"buyer_accepts_marketing"`
-	CancelReason          string          `json:"cancel_reason"`
-	CancelledOn           time.Time       `json:"cancelled_on"`
-	CartToken             string          `json:"cart_token"`
-	ClientDetails         ClientDetails   `json:"client_details"`
-	ClosedOn              time.Time       `json:"closed_on"`
-	Currency              string          `json:"currency"`
-	Customer              Customer        `json:"customer"`
-	DiscountCodes         []DiscountCode  `json:"discount_codes"`
-	Email                 string          `json:"email"`
-	FinancialStatus       string          `json:"financial_status"`
-	Status                string          `json:"status"`
-	Fulfillments          Fulfillments    `json:"fulfillments"`
-	FulfillmentStatus     string          `json:"fulfillment_status"`
-	Tags                  string          `json:"tags"`
-	LandingSite           string          `json:"landing_site"`
-	LineItems             []LineItem      `json:"line_items"`
-	Name                  string          `json:"name"` // name of order. Eg: "#0001"
-	Note                  string          `json:"note"`
-	NoteAttributes        []NoteAttribute `json:"note_attributes"`
-	Number                uint64          `json:"number"` // The unique number that identifies the Order for the Shop. This number is a self-incrementing number and starts at 1000. Eg: 
-	OrderNumber           uint64          `json:"order_number"` // The unique number that identifies the Order. This number is used by Shop owners and customers.
-	PaymentGatewayNames   []string        `json:"payment_gate_way_names"`
-	ProcessedOn           time.Time       `json:"processed_on"`
-	ProcessingMethod      string          `json:"processing_method"`
-	ReferringSite         string          `json:"referring_site"`
-	Refunds               string          `json:"refunds"`
-	ShippingAddress       ShippingAddress `json:"shipping_address"`
-	ShippingLines         []ShippingLine  `json:"shipping_lines"`
-	SourceName            string          `json:"source_name"`
-	Token                 string          `json:"token"`
-	TotalDiscount         float64         `json:"total_discount"`
-	TotalLineItemsPrice   float64         `json:"total_line_items_price"`
-	TotalPrice            float64         `json:"total_price"`
-	TotalWeight           int             `json:"total_weight"`
-	ModifiedOn            time.Time       `json:"modified_on"`
-	Gateway               string          `json:"gateway"`
+	StoreId               uint64             `json:"store_id"`
+	BillingAddress        BillingAddress     `json:"billing_address" gorm:"default:null"`
+	BrowserIP             string             `json:"browser_ip" gorm:"default:null"`
+	BuyerAcceptsMarketing bool               `json:"buyer_accepts_marketing" gorm:"default:null"`
+	CancelReason          string             `json:"cancel_reason" gorm:"default:null"`
+	CancelledOn           time.Time          `json:"cancelled_on" gorm:"default:null"`
+	CartToken             string             `json:"cart_token"`
+	ClientDetails         ClientDetails      `json:"client_details" gorm:"default:null"`
+	ClosedOn              time.Time          `json:"closed_on" gorm:"default:null"`
+	Currency              string             `json:"currency" gorm:"default:null"`
+	Customer              Customer           `json:"customer" gorm:"default:null"`
+	DiscountCodes         DiscountCodeArray  `json:"discount_codes" gorm:"default:null"`
+	Email                 string             `json:"email" gorm:"default:null"`
+	FinancialStatus       string             `json:"financial_status" gorm:"default:null"`
+	Status                string             `json:"status" gorm:"default:null"`
+	Fulfillments          Fulfillments       `json:"fulfillments" gorm:"default:null"`
+	FulfillmentStatus     string             `json:"fulfillment_status" gorm:"default:null"`
+	Tags                  string             `json:"tags" gorm:"default:null"`
+	LandingSite           string             `json:"landing_site" gorm:"default:null"`
+	LineItems             LineItemArray      `json:"line_items" gorm:"default:null"`
+	Name                  string             `json:"name" gorm:"default:null"` // name of order. Eg: "#0001"
+	Note                  string             `json:"note" gorm:"default:null"`
+	NoteAttributes        NoteAttributeArray `json:"note_attributes" gorm:"default:null"`
+	Number                uint64             `json:"number" gorm:"default:null"`       // The unique number that identifies the Order for the Shop. This number is a self-incrementing number and starts at 1000. Eg:
+	OrderNumber           uint64             `json:"order_number" gorm:"default:null"` // The unique number that identifies the Order. This number is used by Shop owners and customers.
+	PaymentGatewayNames   StringArray        `json:"payment_gateway_names" gorm:"default:null"`
+	ProcessedOn           time.Time          `json:"processed_on" gorm:"default:null"`
+	ProcessingMethod      string             `json:"processing_method" gorm:"default:null"`
+	ReferringSite         string             `json:"referring_site" gorm:"default:null"`
+	Refunds               string             `json:"refunds" gorm:"default:null"`
+	ShippingAddress       ShippingAddress    `json:"shipping_address" gorm:"default:null"`
+	ShippingLines         ShippingLineArray  `json:"shipping_lines" gorm:"default:null"`
+	SourceName            string             `json:"source_name" gorm:"default:null"`
+	Token                 string             `json:"token" gorm:"default:null"`
+	TotalDiscount         float64            `json:"total_discount" gorm:"default:null"`
+	TotalLineItemsPrice   float64            `json:"total_line_items_price" gorm:"default:null"`
+	TotalPrice            float64            `json:"total_price" gorm:"default:null"`
+	TotalWeight           int                `json:"total_weight" gorm:"default:null"`
+	ModifiedOn            time.Time          `json:"modified_on" gorm:"default:null"`
+	Gateway               string             `json:"gateway" gorm:"default:null"`
+}
+
+type StringArray []string
+
+func (sla *StringArray) Scan(src interface{}) error {
+	return json.Unmarshal(src.([]byte), &sla)
+}
+
+func (sla StringArray) Value() (driver.Value, error) {
+	val, err := json.Marshal(sla)
+	return string(val), err
 }
 
 type BillingAddress struct {
@@ -64,6 +79,15 @@ type BillingAddress struct {
 	Default      bool   `json:"default"`
 }
 
+func (sla *BillingAddress) Scan(src interface{}) error {
+	return json.Unmarshal(src.([]byte), &sla)
+}
+
+func (sla BillingAddress) Value() (driver.Value, error) {
+	val, err := json.Marshal(sla)
+	return string(val), err
+}
+
 type ClientDetails struct {
 	AcceptLanguage string `json:"accept_language"`
 	BrowserHeight  string `json:"browser_height"`
@@ -71,6 +95,15 @@ type ClientDetails struct {
 	BrowserIP      string `json:"browser_ip"`
 	SessionHash    string `json:"session_hash"`
 	UserAgent      string `json:"user_agent"`
+}
+
+func (sla *ClientDetails) Scan(src interface{}) error {
+	return json.Unmarshal(src.([]byte), &sla)
+}
+
+func (sla ClientDetails) Value() (driver.Value, error) {
+	val, err := json.Marshal(sla)
+	return string(val), err
 }
 
 type Customer struct {
@@ -88,10 +121,30 @@ type Customer struct {
 	Tags             string    `json:"tags"`
 }
 
+func (sla *Customer) Scan(src interface{}) error {
+	return json.Unmarshal(src.([]byte), &sla)
+}
+
+func (sla Customer) Value() (driver.Value, error) {
+	val, err := json.Marshal(sla)
+	return string(val), err
+}
+
 type DiscountCode struct {
 	Amount int    `json:"amount"`
 	Code   string `json:"code"`
 	Type   string `json:"type"`
+}
+
+type DiscountCodeArray []DiscountCode
+
+func (sla *DiscountCodeArray) Scan(src interface{}) error {
+	return json.Unmarshal(src.([]byte), &sla)
+}
+
+func (sla DiscountCodeArray) Value() (driver.Value, error) {
+	val, err := json.Marshal(sla)
+	return string(val), err
 }
 
 type Fulfillments struct {
@@ -102,6 +155,15 @@ type Fulfillments struct {
 	TrackingCompany string    `json:"tracking_company"`
 	TrackingNumber  string    `json:"tracking_number"`
 	ModifiedOn      time.Time `json:"modified_on"`
+}
+
+func (sla *Fulfillments) Scan(src interface{}) error {
+	return json.Unmarshal(src.([]byte), &sla)
+}
+
+func (sla Fulfillments) Value() (driver.Value, error) {
+	val, err := json.Marshal(sla)
+	return string(val), err
 }
 
 type LineItem struct {
@@ -125,9 +187,31 @@ type LineItem struct {
 	TotalDiscount       float64 `json:"total_discount"`
 }
 
+type LineItemArray []LineItem
+
+func (sla *LineItemArray) Scan(src interface{}) error {
+	return json.Unmarshal(src.([]byte), &sla)
+}
+
+func (sla LineItemArray) Value() (driver.Value, error) {
+	val, err := json.Marshal(sla)
+	return string(val), err
+}
+
 type NoteAttribute struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
+	Name      string `json:"name"`
+	Attribute string `json:"attribute"`
+}
+
+type NoteAttributeArray []NoteAttribute
+
+func (sla *NoteAttributeArray) Scan(src interface{}) error {
+	return json.Unmarshal(src.([]byte), &sla)
+}
+
+func (sla NoteAttributeArray) Value() (driver.Value, error) {
+	val, err := json.Marshal(sla)
+	return string(val), err
 }
 
 type ShippingAddress struct {
@@ -149,10 +233,30 @@ type ShippingAddress struct {
 	CountryCode  string `json:"country_code"`
 }
 
+func (sla *ShippingAddress) Scan(src interface{}) error {
+	return json.Unmarshal(src.([]byte), &sla)
+}
+
+func (sla ShippingAddress) Value() (driver.Value, error) {
+	val, err := json.Marshal(sla)
+	return string(val), err
+}
+
 type ShippingLine struct {
 	Code     string  `json:"code"`
 	Price    float64 `json:"price"`
 	Source   string  `json:"source"`
 	Title    string  `json:"title"`
 	TaxLines string  `json:"tax_lines"`
+}
+
+type ShippingLineArray []ShippingLine
+
+func (sla *ShippingLineArray) Scan(src interface{}) error {
+	return json.Unmarshal(src.([]byte), &sla)
+}
+
+func (sla ShippingLineArray) Value() (driver.Value, error) {
+	val, err := json.Marshal(sla)
+	return string(val), err
 }

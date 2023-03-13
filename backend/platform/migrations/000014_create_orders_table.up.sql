@@ -25,7 +25,7 @@ CREATE TABLE `qr_menu`.`orders` (
     `note_attributes` JSON NULL DEFAULT NULL,
     `number` BIGINT NULL DEFAULT NULL,
     `order_number` BIGINT NULL DEFAULT NULL,
-    `payment_gate_way_names` JSON NULL DEFAULT NULL,
+    `payment_gateway_names` JSON NULL DEFAULT NULL,
     `processed_on` TIMESTAMP NULL DEFAULT NULL,
     `processing_method` VARCHAR(50) NULL DEFAULT NULL,
     `referring_site` VARCHAR(255) NULL DEFAULT NULL,

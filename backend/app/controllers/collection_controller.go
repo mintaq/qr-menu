@@ -5,7 +5,6 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/app/models"
-	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/repository"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/platform/database"
 	"golang.org/x/exp/slices"
@@ -162,9 +161,6 @@ func CreateCollection(c *fiber.Ctx) error {
 	if err := collection.ExtractDataFromFile(c, database.Database, claims, nil); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(models.NewResponse(true, err.Error(), nil))
 	}
-	collection.Gateway = repository.GATEWAY_CUSTOM
-	collection.CollectionId = utils.CreateUintId()
-	collection.Alias = collection.GetNameAlias()
 
 	if err := utils.NewValidator().Struct(collection); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(models.NewResponse(true, err.Error(), nil))

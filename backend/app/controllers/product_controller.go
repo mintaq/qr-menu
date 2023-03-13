@@ -5,7 +5,6 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/app/models"
-	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/repository"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/platform/database"
 	"gorm.io/gorm"
@@ -23,19 +22,11 @@ func CreateProduct(c *fiber.Ctx) error {
 
 	productFormData := new(models.ProductFormData)
 	if err := productFormData.ExtractDataFromFile(c, database.Database, claims, nil); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(models.NewErrorResponse(err.Error()))
 	}
-	productFormData.Gateway = repository.GATEWAY_CUSTOM
-	productFormData.ProductId = utils.CreateUintId()
 
 	if err := utils.NewValidator().Struct(productFormData); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   utils.ValidatorErrors(err),
-		})
+		return c.Status(fiber.StatusInternalServerError).JSON(models.NewErrorResponse(err.Error()))
 	}
 
 	product := productFormData.GetProduct()
@@ -113,11 +104,8 @@ func UpdateProduct(c *fiber.Ctx) error {
 
 	productFormData := new(models.ProductFormData)
 
-	if err := productFormData.ExtractDataFromFile(c, database.Database, claims, nil); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
+	if err := productFormData.ExtractDataFromFile(c, database.Database, claims, []string{"product_id", "gateway"}); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(models.NewErrorResponse(err.Error()))
 	}
 
 	product := new(models.Product)

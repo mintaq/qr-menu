@@ -81,14 +81,22 @@ func (c *Collection) GetProducts(db *gorm.DB) ([]Product, error) {
 	return products, nil
 }
 
-func (c *Collection) ExtractDataFromFile(ctx *fiber.Ctx, db *gorm.DB, claims *utils.TokenMetadata, excepts []string) error {
+func (c *Collection) ExtractDataFromFile(ctx *fiber.Ctx, db *gorm.DB, claims *utils.TokenMetadata, ignoreKeys []string) error {
 	form, err := ctx.MultipartForm()
 	if err != nil {
 		return err
 	}
 
+	if !slices.Contains(ignoreKeys, "gateway") {
+		c.Gateway = repository.GATEWAY_CUSTOM
+	}
+
+	if !slices.Contains(ignoreKeys, "collection_id") {
+		c.CollectionId = utils.CreateUintId()
+	}
+
 	for key, value := range form.Value {
-		if len(value) == 0 || slices.Contains(excepts, key) {
+		if len(value) == 0 || slices.Contains(ignoreKeys, key) {
 			continue
 		}
 
@@ -121,7 +129,7 @@ func (c *Collection) ExtractDataFromFile(ctx *fiber.Ctx, db *gorm.DB, claims *ut
 		}
 
 		fileName := fmt.Sprintf("%s%d", os.Getenv("COLLECTION_IMAGE_PREFIX"), c.CollectionId)
-		filePathSrc, err := utils.CreateImage(file, fileName, store.Subdomain, ctx)
+		filePathSrc, err := utils.CreateImage(file, fileName, store.GetSubdomainWithSuffix(), ctx)
 		if err != nil {
 			return err
 		}
