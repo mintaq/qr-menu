@@ -38,4 +38,6 @@ func PublicRoutes(a *fiber.App) {
 
 	// Routes for Order:
 	v1.Post("/orders", controllers.CreateOrder)
+	v1.Post("/orders/checkout", controllers.CheckoutOrder)
+	v1.Post("/orders/pay", controllers.PayOrder)
 }

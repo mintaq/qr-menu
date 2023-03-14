@@ -46,3 +46,8 @@ CREATE TABLE `qr_menu`.`orders` (
     INDEX (`store_id`),
     INDEX (`cart_token`)
 ) ENGINE = InnoDB CHARSET = utf8mb4 COLLATE utf8mb4_general_ci;
+
+ALTER TABLE
+    `qr_menu`.`orders`
+ADD
+    CONSTRAINT `store_cart_token_unique` UNIQUE KEY(store_id, cart_token);

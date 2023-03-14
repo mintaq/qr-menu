@@ -4,6 +4,8 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"time"
+
+	"golang.org/x/exp/slices"
 )
 
 type Order struct {
@@ -50,6 +52,12 @@ type Order struct {
 	Gateway               string             `json:"gateway" gorm:"default:null"`
 }
 
+func (*Order) GetColumnsUpdateOnConflict() []string {
+	return []string{
+		"billing_address", "browser_ip", "buyer_accepts_marketing", "cancel_reason", "note_attributes", "line_items", "total_line_items_price", "total_price", "total_weight",
+	}
+}
+
 type StringArray []string
 
 func (sla *StringArray) Scan(src interface{}) error {
@@ -59,6 +67,12 @@ func (sla *StringArray) Scan(src interface{}) error {
 func (sla StringArray) Value() (driver.Value, error) {
 	val, err := json.Marshal(sla)
 	return string(val), err
+}
+
+func (o *Order) UpdatePaymentGatewayNames(paymentMethod string) {
+	if !slices.Contains(o.PaymentGatewayNames, paymentMethod) {
+		o.PaymentGatewayNames = append(o.PaymentGatewayNames, paymentMethod)
+	}
 }
 
 type BillingAddress struct {
@@ -182,7 +196,7 @@ type LineItem struct {
 	Vendor              string  `json:"vendor"`
 	Name                string  `json:"name"` // title of variant
 	GiftCard            bool    `json:"gift_card"`
-	Taxable             bool    `json:"table"`
+	Taxable             bool    `json:"taxable"`
 	TaxLines            string  `json:"tax_lines"`
 	TotalDiscount       float64 `json:"total_discount"`
 }
@@ -259,4 +273,8 @@ func (sla *ShippingLineArray) Scan(src interface{}) error {
 func (sla ShippingLineArray) Value() (driver.Value, error) {
 	val, err := json.Marshal(sla)
 	return string(val), err
+}
+
+type PayOrderReqBody struct {
+	PaymentMethod string `json:"payment_method" validate:"required,oneof=cash bank_transfer vnpay card"`
 }

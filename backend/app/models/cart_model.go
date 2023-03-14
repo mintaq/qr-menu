@@ -20,6 +20,21 @@ type AddItemToCartReqBody struct {
 	Quantity  int    `json:"quantity"`
 }
 
+func (c *Cart) GetOrderLineItems() LineItemArray {
+	lineItems := []LineItem{}
+	for index := range c.Items {
+		lineItems = append(lineItems, LineItem{
+			Id: c.Items[index].ID,
+			Price: c.Items[index].Price,
+			ProductId: c.Items[index].ProductId,
+			Quantity: c.Items[index].Quantity,
+			Title: c.Items[index].ProductName,
+		})
+	}
+
+	return lineItems
+}
+
 func (c *Cart) CountTotalPrice() *Cart {
 	var totalPrice float64
 	for i := range c.Items {

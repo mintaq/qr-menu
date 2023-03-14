@@ -16,4 +16,9 @@ const (
 	ORDER_STATUS_OPEN      string = "open"
 	ORDER_STATUS_CLOSED    string = "closed"
 	ORDER_STATUS_CANCELLED string = "cancelled"
+
+	PAYMENT_METHOD_CASH          string = "cash"
+	PAYMENT_METHOD_BANK_TRANSFER string = "bank_transfer"
+	PAYMENT_METHOD_VNPAY         string = "vnpay"
+	PAYMENT_METHOD_CARD          string = "card"
 )
