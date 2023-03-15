@@ -1,11 +1,15 @@
 package controllers
 
 import (
+	"log"
+
 	"github.com/gofiber/fiber/v2"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/app/models"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/pkg/utils"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/platform/cache"
 	"gitlab.xipat.com/omega-team3/qr-menu-backend/platform/database"
+
+	socketio "github.com/googollee/go-socket.io"
 )
 
 type CartReqBody struct {
@@ -135,6 +139,12 @@ func UpdateCart(c *fiber.Ctx) error {
 	if err := cache.SetCartData(tableKey, cart, utils.GetRedisCartDuration()); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(models.NewErrorResponse(err.Error()))
 	}
+
+	server := socketio.NewServer(nil)
+
+	server.BroadcastToRoom("test", "some:room:1", "some:event", "cart", func(conn socketio.Conn, data string) {
+		log.Println("Client ACK with data: ", data)
+	})
 
 	return c.Status(fiber.StatusOK).JSON(models.NewSuccessResponse(cart))
 }

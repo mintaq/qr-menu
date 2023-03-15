@@ -15,11 +15,13 @@ func StartWebsocketServer() {
 
 	server.OnConnect("/", func(s socketio.Conn) error {
 		s.SetContext("")
-		fmt.Println("connected:", s.ID())
+		room := fmt.Sprintf("some:room:%v", s.ID())
+		s.Join(room)
+		fmt.Println("joined:", room)
 		return nil
 	})
 
-	server.OnEvent("/", "notice", func(s socketio.Conn, msg string) {
+	server.OnEvent("/notice", "notice", func(s socketio.Conn, msg string) {
 		fmt.Println("notice:", msg)
 		s.Emit("reply", "have "+msg)
 	})
@@ -29,18 +31,18 @@ func StartWebsocketServer() {
 		return "recv " + msg
 	})
 
-	server.OnEvent("/", "bye", func(s socketio.Conn) string {
+	server.OnEvent("/bye", "bye", func(s socketio.Conn) string {
 		last := s.Context().(string)
 		s.Emit("bye", last)
 		s.Close()
 		return last
 	})
 
-	server.OnError("/", func(s socketio.Conn, e error) {
+	server.OnError("/error", func(s socketio.Conn, e error) {
 		fmt.Println("meet error:", e)
 	})
 
-	server.OnDisconnect("/", func(s socketio.Conn, reason string) {
+	server.OnDisconnect("/dis", func(s socketio.Conn, reason string) {
 		fmt.Println("closed", reason)
 	})
 
@@ -53,6 +55,6 @@ func StartWebsocketServer() {
 		log.Println("alo")
 		fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
 	}))
-	log.Println("Server started on: http://localhost:8001")
-	log.Fatalln(http.ListenAndServe(":8001", serverMux))
+	log.Println("Server started on: http://localhost:5009")
+	log.Fatalln(http.ListenAndServe(":5009", serverMux))
 }
