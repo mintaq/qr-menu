@@ -50,7 +50,6 @@ func main() {
 
 	// Redis client.
 	worker.CreateRedisClient()
-	defer worker.AsynqClient.Close()
 	go worker.StartRedisServer()
 
 	// Http client.

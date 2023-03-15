@@ -20,4 +20,5 @@ func CreateRedisClient() {
 	}
 
 	AsynqClient = asynq.NewClient(redisOpt)
+	defer AsynqClient.Close()
 }

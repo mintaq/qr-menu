@@ -10,6 +10,7 @@ require (
 	github.com/gofiber/jwt/v2 v2.2.7
 	github.com/golang-jwt/jwt/v4 v4.4.3
 	github.com/google/uuid v1.3.0
+	github.com/googollee/go-socket.io v1.7.0
 	github.com/hibiken/asynq v0.24.0
 	github.com/jackc/pgx/v4 v4.17.2
 	github.com/jmoiron/sqlx v1.3.5
@@ -27,16 +28,13 @@ require (
 
 require (
 	cloud.google.com/go/compute/metadata v0.2.0 // indirect
-	github.com/fasthttp/websocket v1.5.1 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
-	github.com/gofiber/websocket/v2 v2.1.4 // indirect
 	github.com/gofrs/uuid v4.0.0+incompatible // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/gomodule/redigo v1.8.4 // indirect
-	github.com/googollee/go-socket.io v1.7.0 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/lib/pq v1.10.5 // indirect
 	github.com/mattn/go-sqlite3 v1.14.10 // indirect
