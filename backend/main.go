@@ -56,6 +56,9 @@ func main() {
 	// Http client.
 	utils.CreateHttpClient()
 
+	// Websocket server
+	go utils.StartWebsocketServer()
+
 	// Start server (with or without graceful shutdown).
 	if os.Getenv("STAGE_STATUS") == "dev" {
 		utils.StartServer(app)
